@@ -1,113 +1,75 @@
-# swe-cmd
+# byproxy
 
-Discipline is the source of speed, not the enemy of it.
+You act by proxy. You never touch the code directly.
 
 ## The problem nobody wants to name
 
-Every AI coding tool in 2026 is obsessed with context engineering — curating what the model sees so it produces better output. Embeddings, RAG pipelines, dynamic rule loading, memory systems. All of it assumes the same thing: if the model sees the right information, it will do the right thing.
+Every AI coding tool in 2026 is obsessed with context engineering — curating what the model sees so it produces better output. Embeddings, RAG pipelines, dynamic rule loading, memory systems. All of it answers one question: *what should the model see?*
 
-It won't.
+Two questions go unanswered. **Who should do the work?** — because the expensive model burns tokens reading files it could have delegated. And **what survives between steps?** — because chat history evaporates and the model re-derives what it already knew.
 
-A model with perfect context and no process will still:
-- Implement what it inferred instead of what you meant
-- Write tests that mirror the implementation instead of specifying behavior
-- Leave no record of decisions, so every question gets re-litigated
-- Drift from conventions without noticing, and without leaving a trail
+byproxy answers both. One orchestrator reasons and decides; it never reads a file or runs a command itself. Cheap explorer agents are its eyes. A single builder is its hands. Everything they exchange is a terse, schema-bound telegraph — and that telegraph log is the system's only memory.
 
-Context engineering answers "what should the model see?" Discipline answers "what should the model *do* with what it sees?" The industry is solving the first question and ignoring the second.
+## The architecture
 
-## What this is
+This is the **control plane / data plane** split from networking, applied to coding agents. The orchestrator is the control plane: it holds no payload, it decides where things go. The agents are the data plane: they move the bytes.
 
-A methodology for agentic software development, encoded as executable commands. A set of habits — given shape so an agent can follow them and a human can audit them.
+- **You (the orchestrator).** Expensive model. Reason over telegraphs, decide, dispatch. Never touch ground truth. Doubt a load-bearing fact → dispatch a second explorer and compare.
+- **Explorers.** Haiku-class, read-only, disposable. One narrow question each, then they cease to exist. They report facts and quote machine output verbatim — they never judge. The cheapest model in the loop must never decide what information survives.
+- **Builder.** One Sonnet-class agent, serial, the only writer. Executes a precise spec with a mechanical exit condition, and escalates the moment a deterministic trigger fires rather than circling.
 
-**Design for humans and the agent benefits for free.** Readable specs, honest conventions, and meaningful tests serve the human first. The agent inherits the clarity at no extra cost.
+**Why it's cheaper.** Raw file contents in the orchestrator's context cost quadratically on the most expensive model. Telegraphs are ~300–500 tokens and grow linearly on a cache-friendly append-only prefix. Diagnosis-by-explorer is ≈20× cheaper than diagnosis-by-reading. Compress the channels; never compress the scratchpad.
 
-## Key ideas
+## TGS — the telegraph protocol
 
-**Reading depth prevents blind modifications.** Three levels: Interface → Logic → History. One hard rule: never modify a file you've only read at Depth 1. Simple constraint, prevents one of the most common agent failures.
-
-**Conventions are questions, not rules.** Every CLAUDE.md and AGENTS.md in the wild is a list of bare directives with no reasoning. swe-cmd's CONVENTIONS.md template forces you to answer *why* — "Where have errors bitten you before?" "What makes a test brittle in this project?" A rule without a why is fragile.
-
-**The BLUE phase catches what RED→GREEN misses.** TDD's standard loop is RED → GREEN → refactor. swe-cmd extends it: RED → GREEN → BLUE → REVIEW. BLUE is where you try to break your own test: mutation check, false pass check, behavior vs. implementation check. Tests that pass for the wrong reason are worse than no tests.
-
-**The devlog.md is memory that doesn't evaporate.** Chat history disappears. swe-cmd writes a devlog.md entry per behavior, per phase — with commit hashes, decisions made, conventions diverged from, and blind spots flagged. Start a new session six months later, read the devlog.md, know exactly where things stand.
-
-## The honest gap
-
-swe-cmd optimizes the *process layer* — what the agent does and in what order. It doesn't optimize the *information layer* — what the agent sees at each step.
-
-The strongest version would dynamically load the right spec section, devlog entry, and conventions based on which behavior is being implemented. That's not built yet. Right now it's plain markdown files and a disciplined agent. That still beats a context-optimized agent with no discipline.
-
-## Commands
-
-| Command | Purpose |
-|---|---|
-| `/swe-init` | Phase Zero — orient, read the project, establish conventions, create `.swe/` |
-| `/swe-spec` | Interview → behaviors → frozen spec.md |
-| `/swe-respec` | Supersede or deprecate an existing spec.md |
-| `/swe-implement <feature>` | Micro TDD cycle per behavior |
-| `/swe-fix <description>` | Fix a bug with TDD — no spec.md, test IS the spec |
-| `/swe-refactor <description>` | Refactor without altering behavior — existing tests are the safety net |
-| `/swe-verify` | spec.md↔test coverage audit |
-| `/swe-status` | Standalone health audit, run anytime |
-
-## What gets created in your project
-
-Running `/swe-init` creates a `.swe/` directory:
+All inter-agent messages use **TGS** (Telegraphic-Grok-Schema): labeled fields, no prose, grok-dense inside fields, machine output quoted verbatim, absence reported explicitly (`UNKNOWN:` is mandatory). A dispatch to the builder looks like:
 
 ```
-.swe/
-  map.md
-  spec/
-    feat-<behavior-centric-name>/
-      spec.md       # BDD behaviors. Frozen when approved.
-      devlog.md     # Decisions, blocks, overrides, divergence.
-  _archive/
-    superseded/
-    deprecated/
+TASK: fix off-by-one token count lex.go:31
+SCOPE: lex.go only
+CONTEXT: comment lex.go:29 claims intentional skip — preserve intent or update it
+DONE-WHEN: TestParseHeader + TestComment green
+ESCALATE-IF: 2 consecutive fail runs | fix requires touching parse.go | diff >30 lines
 ```
 
-## Typical workflow
+Full spec: [`references/tgs-spec.md`](.claude/skills/byproxy/references/tgs-spec.md).
+
+## The builder's discipline: RYGB
+
+The builder doesn't write code freehand. It runs the **Red → Yellow → Green → Blue** TDD cycle, one full cycle per logical unit:
+
+- 🔴 **Red** — write the failing test; confirm it fails for the right reason.
+- 🟡 **Yellow** — an explorer critiques the test (trivial-pass? missing edge cases? wrong failure?). The orchestrator judges the findings and redirects.
+- 🟢 **Green** — minimal implementation to pass; nothing more.
+- 🔵 **Blue** — an explorer audits coverage and correctness. The orchestrator classifies each finding as pure cleanup (redirect the builder) or a new cycle (queue it in the telegraph log). Never interleave.
+
+Yellow and Blue are read-only *findings*; the verdict is always the orchestrator's. That is byproxy's core rule applied to TDD: the cheapest model reports, the expensive model decides.
+
+## What's in this repo
 
 ```
-/swe-init           # once per project
-/swe-spec           # interview → behaviors → frozen spec.md
-/swe-implement      # TDD cycle per behavior (RED → GREEN → BLUE → REVIEW)
-/swe-verify         # spec.md↔test coverage audit before shipping
-/swe-status         # run anytime to catch drift
+.claude/skills/byproxy/
+  SKILL.md                 # the orchestrator's operating instructions
+  references/tgs-spec.md   # the TGS message protocol
+  templates/
+    explorer.md            # read-only subagent system prompt
+    builder.md             # single-writer subagent system prompt
+template/
+  CONVENTIONS.md           # questions that produce reasoning, not bare rules —
+                           # feeds project facts into dispatch CONTEXT fields
 ```
 
 ## Getting started
 
-Requires [OpenCode](https://opencode.ai) on your PATH (also picks up Claude Code and Cursor context files).
+byproxy is a **Claude Code skill** (Claude-specific for now — it relies on subagent dispatch).
 
 ```sh
-git clone https://github.com/joaomdsg/swe-cmd.git
-ln -s /path/to/swe-cmd/commands ~/.config/opencode/commands
+git clone https://github.com/joaomdsg/byproxy.git
+ln -s "$(pwd)/byproxy/.claude/skills/byproxy" ~/.claude/skills/byproxy
 ```
 
-Then in any project: `/swe-init`
-
-Keep your global context files minimal — competing instructions dilute the process.
-
-## Templates
-
-The `template/` directory contains starting points for:
-
-- `README.md` — what the project does, how to build and test it, structure overview
-- `CONVENTIONS.md` — questions that produce reasoning, not bare rules
-- `DESIGN.md` — domain separation, system boundaries, tech rationale, data flows
-
-These exist because the commands depend on finding honest, useful versions of these files in the projects they operate on.
+Then in any project, invoke `/byproxy` (or just describe a multi-agent coding task) and hand it the work.
 
 ## The philosophy in one sentence
 
-Write it down before you write the code, scrutinize before you ship, and log what actually happened — because the next person in this codebase might be you, six months from now, wondering why.
-
-## Inspiration
-
-- **Kent Beck** — TDD, and the insight that order of operations matters. BLUE is Beck's cycle with the attack phase made explicit.
-- **Martin Fowler** — refactoring as a discipline separate from feature work. Conflating them is where most projects quietly rot.
-- **Fred Brooks** — process matters more than heroics. The devlog.md makes decisions visible so the next session doesn't reconstruct them from first principles.
-- **Edsger Dijkstra** — constraints are the source of reliability. Reading depth levels, frozen specs, BLUE phase checks — they feel slow; they are why this works.
-- **Donald Knuth** — programs written for humans, only incidentally executed by machines. The devlog.md, BDD spec.md, reasoning-first CONVENTIONS.md — literate programming by another name.
+Reason from above, delegate the reading down, let one hand do the writing, and keep the only record you trust in the telegraph log — because the expensive model should spend its tokens thinking, not fetching.

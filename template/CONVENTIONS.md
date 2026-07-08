@@ -37,6 +37,10 @@ _Answer:_
 
 _Answer:_
 
+**Test run strategy:** Run the full suite at 🔴 Red (to verify the new test fails) and at unit completion. During 🟢 Green, run scoped tests — the new test plus existing tests for the modules modified. Scoped tests passing is sufficient to proceed within a cycle.
+
+_Fill in your test filter command (e.g., `jest src/auth/`, `pytest tests/auth/`, `go test ./auth/...`):_
+
 ---
 
 ## Naming
@@ -69,6 +73,18 @@ _Answer:_
 
 ---
 
+## Glossary
+
+_Pin domain terms used across specs and code. When a term has more than one plausible meaning in this domain, define the one this project uses._
+
+_Terms defined here are the authoritative definitions. When a dispatch's `CONTEXT:` needs a domain term, it draws from here — one place, one meaning._
+
+| Term | Definition |
+|---|---|
+| | |
+
+---
+
 ## Anti-patterns
 
 _Concrete examples of what convention violations look like in code. Add entries as you find them. The agent can search for these patterns mechanically._
@@ -82,15 +98,26 @@ _Concrete examples of what convention violations look like in code. Add entries 
 ## Commit conventions
 
 ```
-spec(<name>): approved
-feat(<name>): B<N> — <behavior summary>
-verify(<name>): all behaviors covered
+feat(<area>): <summary>
+fix(<area>): <summary>
+refactor(<area>): <summary>
+test(<area>): <summary>
 ```
+
+_State the shape your commits take and why. One logical unit per commit keeps history reviewable._
 
 ---
 
 ## Things We've Learned the Hard Way
 
 _This section grows with incidents, postmortems, and painful lessons. Short entries are fine. Include a date or reference if useful._
+
+-
+
+---
+
+## Notes for byproxy
+
+_Project-specific facts byproxy should feed into dispatch `CONTEXT:` fields. Fill these in as you discover constraints an explorer or builder would otherwise have to re-derive: build quirks, non-obvious module boundaries, flaky tests, environment setup._
 
 -
