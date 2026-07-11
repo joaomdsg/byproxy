@@ -113,9 +113,14 @@ independent explorer dispatches into one turn; they parallelize free.
                   your confidence. it judges — contract conformance,
                   whether tests force the behaviors, behaviors the task
                   implies that the contract missed, latent defects (it
-                  writes probe tests and runs them under -race). it
-                  reads the raw diff itself; anything else it needs
-                  comes back as QUESTIONS.
+                  writes probe tests and runs them under -race). for
+                  every at-least-once / delivery and every isolation
+                  invariant the task implies, fault injection is
+                  MANDATORY, not "where feasible": a failing writer, a
+                  dropped connection, a second concurrent scope — the
+                  defects that survive inspection only die to an injected
+                  fault. it reads the raw diff itself; anything else it
+                  needs comes back as QUESTIONS.
                c. RELAY — dispatch explorers for its QUESTIONS and pipe
                   reports back via SendMessage VERBATIM — you add
                   nothing, filter nothing; a mediated relay is a
@@ -152,13 +157,32 @@ the ones you happen to worry about):
 4. **collision** — do the contract's new symbols/routes/patterns clash
    with existing ones? (`symbol Broadcast absent from pkg/hub? quote the
    existing mux registration pattern verbatim`)
-5. **concurrency invariant** — for each shared mutable state the unit
-   touches: which test exercises concurrent access to it, and what
-   serializes it? (`what protects sessions map in pkg/state? which test
-   runs two writers under -race?`)
+5. **concurrency invariant** — for each shared mutable state *and every
+   mutating entrypoint* the unit touches (handler, action, command,
+   callback — not just the obvious shared map): which test exercises
+   concurrent access, and what serializes it? enumerate every write path;
+   an unserialized handler is invisible until two of them run at once.
+   (`what protects sessions map in pkg/state? which test runs two writers
+   under -race? which entrypoint mutates ctx state with no lock held?`)
+6. **failure-path / at-least-once** — for each effect that must survive a
+   fault (a write that can fail, a connection that can drop, a queue that
+   is drained then re-sent, anything owing at-least-once): which test
+   *injects* that fault and asserts the effect survived? clearing a queue
+   before the write that drains it is green on every happy-path test and
+   only falls to write-failure injection — the happy path is not the
+   contract here, the fault path is.
+7. **isolation** — for each per-session / per-tenant / per-scope state:
+   which test asserts one scope's writes are invisible to another scope?
+   a fan-out that defaults to app-wide instead of the owning scope passes
+   every single-scope test and leaks in production.
 
 Explorer answers pass|fail with quotes. Anomalies beyond the checklist
 land in RISKS — coverage for the failure modes you didn't think to check.
+Patterns 5–7 are the ones the measured record shows slipping through
+inspection: a race, a cross-scope leak, and an at-least-once break that no
+happy-path test and no amount of reading ever caught — only an injected
+fault or a concurrent probe did. Never let their checks be answered "no
+test" without opening a finding.
 
 ## Build discipline (guarded TDD — same rules for you and the builder)
 
@@ -197,7 +221,27 @@ land in RISKS — coverage for the failure modes you didn't think to check.
 Explorers are Haiku (~1/15 top-tier price); the critic is one tool-less
 call on a few thousand input tokens; the builder generates the bulk
 output at Sonnet prices; you spend premium tokens only on reading the
-critical path, contracts, and rulings. The measured history — including
+critical path, contracts, and rulings.
+
+**Cost discipline — measured, not aspirational.** The benchmark record
+shows run cost is ~90% *your own* orchestrator tokens and tracks how much
+you grab the wheel: the priciest rep (2.3× the cheapest) fixed *fewer*
+defects, spent on 19 direct edits + 23 bash calls re-verifying work the
+protocol had already delegated. Extra hands-on churn bought zero quality.
+So:
+
+- **Never re-run what an explorer is dispatched to verify.** Once you send
+  an explorer to rerun an exit check or the suite, that rerun IS the
+  record — you do not also run it yourself. The re-run replaces your bash
+  call; it does not supplement it.
+- **Distrust routes to a probe, not a takeover.** If you doubt the
+  builder's green, an explorer rerun (or an auditor probe) settles it.
+  Re-reading the whole unit and re-editing it yourself is the most
+  expensive possible response and, measured, the least productive.
+- **Tripwire:** if you notice yourself past ~10 direct edits or reruns on
+  a unit you had delegated, stop — that is the wheel-grabbing the cost
+  data flags. Either the unit was mis-routed (own it deliberately, or
+  re-scope the contract) or you are grinding. Name which. The measured history — including
 two refutations of this project's earlier theses — lives in
 `benchmarks/` (benchmarks 1–5 ran under the v2/v3 architectures; read
 them before trusting or extending any claim here). v4's unproven bet, to

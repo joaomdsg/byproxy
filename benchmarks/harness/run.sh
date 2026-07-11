@@ -136,8 +136,23 @@ $PROMPT"
   # worktree stay host-owned and scoring/cleanup work unchanged. Default
   # bridge networking = outbound-only; the container is otherwise isolated.
   if [[ "${CONTAINER:-0}" == "1" ]]; then
+    # Auth source: prefer a byproxy-namespaced key so the harness never needs a
+    # bare ANTHROPIC_API_KEY in your shell (which would hijack your interactive
+    # Claude Code session). BYPROXY_ANTHROPIC_API_KEY, if set, maps to the
+    # container's ANTHROPIC_API_KEY; an explicit ANTHROPIC_API_KEY still wins.
+    export ANTHROPIC_API_KEY="${ANTHROPIC_API_KEY:-${BYPROXY_ANTHROPIC_API_KEY:-}}"
     if [[ -z "${ANTHROPIC_API_KEY:-}" ]]; then
-      echo "CONTAINER=1 requires ANTHROPIC_API_KEY in the environment" >&2
+      echo "CONTAINER=1 requires ANTHROPIC_API_KEY or BYPROXY_ANTHROPIC_API_KEY in the environment" >&2
+      exit 3
+    fi
+    # Preflight the credential TYPE. The Messages API path (-e ANTHROPIC_API_KEY)
+    # needs a console API key (sk-ant-api03-); an OAuth token (sk-ant-oat01-,
+    # what `claude setup-token`/login issues) is rejected as "Invalid API key"
+    # only AFTER the container spins up and bills a worktree. Fail fast instead.
+    if [[ "$ANTHROPIC_API_KEY" == sk-ant-oat01-* ]]; then
+      echo "ANTHROPIC_API_KEY holds an OAuth token (sk-ant-oat01-), not an API key." >&2
+      echo "The Messages API needs a sk-ant-api03- key (console.anthropic.com)." >&2
+      echo "For subscription auth instead, set CLAUDE_CODE_OAUTH_TOKEN and wire it here." >&2
       exit 3
     fi
     CHOME="$WTPARENT/chome"; mkdir -p "$CHOME"

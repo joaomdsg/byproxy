@@ -52,12 +52,19 @@ a campaign is the arm, not the host. Build once, then:
 
 ```sh
 docker build -t byproxy-bench:latest .
-export ANTHROPIC_API_KEY=...            # required; passed by -e, never inlined
+export BYPROXY_ANTHROPIC_API_KEY=sk-ant-api03-...   # namespaced; won't hijack
+                                                    # your interactive session
 CONTAINER=1 ./run.sh tasks/vialite-todo plain --reps 5
 ```
 
 Auth is passed by reference (`-e ANTHROPIC_API_KEY`) — bills to that key's
-account, not the host OAuth login. The container runs as the invoking
+account, not the host OAuth login. The harness reads `BYPROXY_ANTHROPIC_API_KEY`
+(preferred, so a bare `ANTHROPIC_API_KEY` never has to sit in your shell and
+override your own Claude Code login) and maps it to the container's
+`ANTHROPIC_API_KEY`; an explicit `ANTHROPIC_API_KEY` still takes precedence.
+The credential must be a Messages-API key (`sk-ant-api03-`); an OAuth token
+(`sk-ant-oat01-`, from `claude setup-token`) is rejected — run.sh preflights
+for this and fails fast. The container runs as the invoking
 `uid:gid` with a throwaway `$HOME`, so files it writes into the worktree
 stay host-owned and scoring/cleanup are unchanged. Networking is the
 default bridge (outbound-only); the container is otherwise isolated.

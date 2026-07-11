@@ -114,6 +114,33 @@ while IFS= read -r f; do
 done <<<"$HID_FAILS"
 REGRESSN="$(printf '%s' "$REGRESSIONS" | grep -c .)"
 
+# ---- race diagnostic (threat #7) ------------------------------------------
+# The functional pass-rate above drops -race to dodge t.Parallel amplification,
+# which made a race in the shipped tree invisible — "regressions: 0" only ever
+# covered functional ones. Run the full suite once under -race and report
+# whether ANY data race is present in the delivered tree.
+# Two hard-won settings:
+#   * GORACE=halt_on_error=0 — report all races instead of aborting on the
+#     first (the abort made detection flicker run-to-run).
+#   * NO -v — verbose + race (~10x slower) hits `go test`'s 10m default timeout
+#     and truncates the run BEFORE the race report prints (measured: -v gave 0
+#     detections + 63 spurious timeout-fails; plain gave a stable 7).
+# Interpretation, not a standalone count: the seeded races (cas, action) trip
+# this whenever UNFIXED, so read it WITH the per-catcher fixed bits — a
+# data_race_detected=true while the cas/action catchers PASS is the real signal
+# that a race was introduced into, or left in, otherwise-green code. Suite-wide
+# detection of a NOVEL race is best-effort (scheduling-dependent); the
+# authoritative per-known-race signal is the per-catcher -race isolation run
+# above, not this scan.
+RACE_OUT="$(GORACE='halt_on_error=0' go test -race -count=1 ./hidden/ 2>&1)"
+# NB: derive the boolean from the count, not `printf | grep -q`. Under
+# `set -o pipefail`, grep -q short-circuits on the first match, printf takes
+# SIGPIPE, and the pipeline reports failure — so `&& RACE_DETECTED=true` was
+# silently skipped on large output, flipping the flag false while races existed.
+RACE_REPORTS="$(printf '%s\n' "$RACE_OUT" | grep -c 'WARNING: DATA RACE')"
+RACE_DETECTED=false
+[ "${RACE_REPORTS:-0}" -gt 0 ] && RACE_DETECTED=true
+
 # calibration: of the defects a run did NOT fix, how many did its report at
 # least flag as a risk? unflagged-and-unfixed is the worst cell (silent bug).
 unfixed=$(( N - fixed_n ))
@@ -137,6 +164,7 @@ jq -n \
   --argjson N "$N" --argjson fixed_n "$fixed_n" --argjson caught_n "$caught_n" \
   --argjson fc "$fixed_and_caught" --argjson silent "$silent" \
   --argjson regn "$REGRESSN" --arg regs "$(printf '%s' "$REGRESSIONS" | paste -sd'|' -)" \
+  --argjson racedet "$RACE_DETECTED" --argjson racereports "$RACE_REPORTS" \
   '{
      complete: $complete,
      visible_dod: {build:$build, vet:$vet, smoke:$smoke},
@@ -144,7 +172,10 @@ jq -n \
               pass_rate: (if $htotal>0 then ($hpass/$htotal) else 0 end),
               failing: ($hfails | split("|") | map(select(length>0))),
               regressions: ($regs | split("|") | map(select(length>0))),
-              regression_count: $regn},
+              regression_count: $regn,
+              race_check: {data_race_detected: $racedet,
+                           race_reports: $racereports,
+                           note: "read WITH per-defect fixed bits: seeded races (cas/action) trip this when unfixed; detected=true while cas+action catchers pass = a race introduced into/left in green code. Authoritative per-known-race signal is the per-catcher -race isolation run, not this suite scan."}},
      defects: {n:$N, list:$defects,
                fixed:$fixed_n, caught:$caught_n, fixed_and_caught:$fc,
                silent_unfixed:$silent,
