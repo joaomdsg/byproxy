@@ -116,8 +116,8 @@ _This section grows with incidents, postmortems, and painful lessons. Short entr
 
 ---
 
-## Notes for byproxy
+## Notes for nullius
 
-_Project-specific facts byproxy should feed into explorer dispatch `CONTEXT:` fields and its own recon. Fill these in as you discover constraints an explorer would otherwise have to re-derive: build quirks, non-obvious module boundaries, flaky tests, environment setup._
+_Project-specific facts nullius should feed into scout dispatches and its own surgical reads. Fill these in as you discover constraints a scout would otherwise have to re-derive: build quirks, non-obvious module boundaries, flaky tests, environment setup._
 
 -

@@ -85,15 +85,16 @@ a campaign is the arm, not the host. Build once, then:
 
 ```sh
 docker build -t nullius-bench:latest .
-export BYPROXY_ANTHROPIC_API_KEY=sk-ant-api03-...   # namespaced; won't hijack
+export NULLIUS_ANTHROPIC_API_KEY=sk-ant-api03-...   # namespaced; won't hijack
                                                     # your interactive session
 CONTAINER=1 ./run.sh tasks/vialite-todo plain --reps 5
 ```
 
 Auth is passed by reference (`-e ANTHROPIC_API_KEY`) — bills to that key's
-account, not the host OAuth login. The harness reads `BYPROXY_ANTHROPIC_API_KEY`
+account, not the host OAuth login. The harness reads `NULLIUS_ANTHROPIC_API_KEY`
 (preferred, so a bare `ANTHROPIC_API_KEY` never has to sit in your shell and
-override your own Claude Code login) and maps it to the container's
+override your own Claude Code login; the legacy `BYPROXY_ANTHROPIC_API_KEY`
+is still honored) and maps it to the container's
 `ANTHROPIC_API_KEY`; an explicit `ANTHROPIC_API_KEY` still takes precedence.
 The credential must be a Messages-API key (`sk-ant-api03-`); an OAuth token
 (`sk-ant-oat01-`, from `claude setup-token`) is rejected — run.sh preflights

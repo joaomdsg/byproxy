@@ -20,7 +20,7 @@
 set -euo pipefail
 
 HARNESS_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-BYPROXY_ROOT="$(cd "$HARNESS_DIR/../.." && pwd)"
+ROOT_DIR="$(cd "$HARNESS_DIR/../.." && pwd)"
 
 TASK_DIR="$(cd "$1" && pwd)"; ARM="$2"; shift 2
 REPS=1; KEEP=0
@@ -141,8 +141,8 @@ for rep in $(seq 1 "$REPS"); do
     # The archived v6 ceremony (kept runnable for reproduction): wire its
     # skill + agents into the worktree so headless picks them up.
     mkdir -p "$WT/.claude"
-    cp -r "$BYPROXY_ROOT/archive/byproxy-v6/skills" "$WT/.claude/skills"
-    cp -r "$BYPROXY_ROOT/archive/byproxy-v6/agents" "$WT/.claude/agents"
+    cp -r "$ROOT_DIR/archive/byproxy-v6/skills" "$WT/.claude/skills"
+    cp -r "$ROOT_DIR/archive/byproxy-v6/agents" "$WT/.claude/agents"
     CLAUDE_ARGS+=(--model "$ORCH_MODEL" --effort "$ORCH_EFFORT")
     # Ablation: byproxy-noaudit runs the whole guard layer EXCEPT the cold
     # auditor, isolating what the audit itself buys. Remove the agent so it
@@ -182,7 +182,7 @@ for rep in $(seq 1 "$REPS"); do
     # task (measured: 2/3 byproxy arms ignored it and ran solo). Inject the
     # skill body (minus YAML frontmatter) as an appended system prompt so the
     # guard workflow governs the whole run whether or not the Skill tool fires.
-    SKILL_BODY="$(awk 'f{print} /^---[[:space:]]*$/{c++; if(c==2) f=1}' "$BYPROXY_ROOT/archive/byproxy-v6/skills/byproxy/SKILL.md")"
+    SKILL_BODY="$(awk 'f{print} /^---[[:space:]]*$/{c++; if(c==2) f=1}' "$ROOT_DIR/archive/byproxy-v6/skills/byproxy/SKILL.md")"
     CLAUDE_ARGS+=(--append-system-prompt "You are operating under the byproxy v6 methodology. This is not optional and overrides any instinct to complete the task solo. ${ROLE_CLAUSE} You MUST run the full workflow with real subagent dispatches via the Agent tool: byproxy-explorer recon + surgical read, a byproxy-critic red-team of your contract, the compiled gate, ${BUILD_CLAUSE} — and ${AUDIT_CLAUSE}.${EDIT_GUARD} This is a headless run with NO USER available: at ESCALATE, use the self-answer fallback (author the question batch, answer each with your best-judgment recommendation, record all in ASSUMED as self-answered). Never call AskUserQuestion. Do not end your turn until you have reported STATUS/FACTS/RISKS/UNKNOWN/ASSUMED.${AUDIT_OVERRIDE}${BUILD_OVERRIDE} The methodology:
 
 $SKILL_BODY")
@@ -200,7 +200,7 @@ $PROMPT"
     # than plain fable read raw), so the leader still reads the few
     # decisive files itself, once.
     mkdir -p "$WT/.claude/agents"
-    cp "$BYPROXY_ROOT/.claude/agents/nullius-explorer.md" "$WT/.claude/agents/"
+    cp "$ROOT_DIR/.claude/agents/nullius-explorer.md" "$WT/.claude/agents/"
     CLAUDE_ARGS+=(--model "$LEAN_MODEL" --effort "$LEAN_EFFORT")
     CLAUDE_ARGS+=(--append-system-prompt "You are a senior engineer working this task HANDS-ON, under one hard operating constraint: your context window is the bill — every token that enters it is re-paid on every turn that follows, so you finish lean or you finish expensive. The diet governs CONTEXT, never scope: you do ALL the work the task demands, cheaply. Discipline, non-negotiable: (1) DELEGATE BULK: never run builds, tests, vet, or broad searches yourself, and never read whole files you are not about to edit — dispatch nullius-explorer subagents (Agent tool; cheap throwaway contexts) for every such job, BATCHED in parallel when independent; they return capped reports and their runs are your trusted record. (2) HUNT WIDE, THROUGH EXPLORERS: delegation applies to discovery too. Early, batch explorers to sweep EVERY corner of the mandate's code with these lenses, each answered with QUOTED MECHANISMS, never claims: for every shared mutable state AND every mutating entrypoint (handler, action, callback), quote the lock acquisition inside the entrypoint's OWN BODY — a mutex field, a doc comment, or a sibling function's lock is not serialization, and an entrypoint whose body takes no lock IS the finding; for every effect that must survive a fault (a write that can fail, a connection that can drop, a queue drained then re-sent), quote what preserves it — anything cleared before its write is confirmed IS the finding; for every per-session/per-scope state, quote the scope argument at the fan-out/broadcast call site — a nil or missing scope filter IS the finding; for every wake/notify predicate deciding WHO gets woken or re-rendered, quote the condition and check it can actually be false (an always-true predicate IS the finding) and that its reads are under the same lock as its writes; plus lost updates, lifecycle races, and error paths that swallow. Their FACTS name suspects; you read the decisive lines yourself and rule. Comments lie; only quoted code counts. (3) READ SURGICALLY, ONCE: read the few files you will edit yourself, one time; never re-read what you already hold; never re-verify what an explorer verified. (4) If you must run a command yourself, bound it: append '2>&1 | tail -n 20'. (5) BUILD YOURSELF: you design and write all code and tests directly — tests first for behavior you change or fix; then ONE explorer rerun of the decisive tests proves it (under -race for any concurrency claim — the race detector works in this environment), not repeated personal runs. (6) FIX EVERYTHING IN-MANDATE: under a fix-at-root mandate, a defect you have confirmed is FIXED test-first before you close — never merely disclosed. RISKS is for what you could not confirm or what is genuinely out of mandate, each with its reason; a confirmed in-mandate defect left as a disclosure is a failed run. (7) VERIFY CLAIMS BEFORE CLOSE: every serialization/isolation/fault-safety property your fixes or tests RELY on must be verified against quoted code, not comments or declarations; and for each test you wrote, name the code change that would make it fail — a test you cannot articulate a failure for is vacuous and proves nothing. (8) CLOSE: one explorer run of the full suite + go vet, then report. This is a headless run with no user available — never call AskUserQuestion; make the call, record it under ASSUMED. Spend your turns hunting and fixing, never re-verifying; aim to finish within ~35 of your own turns.")
     RUN_PROMPT="$PROMPT$FULL_RISKS"
@@ -213,7 +213,7 @@ $PROMPT"
     [[ -n "$PLAIN_EFFORT" ]] && CLAUDE_ARGS+=(--effort "$PLAIN_EFFORT")
     RUN_PROMPT="$PROMPT$FULL_RISKS"
   else
-    echo "arm must be byproxy|byproxy-noaudit|plain|plain+report" >&2; exit 2
+    echo "arm must be nullius|fable-lean|byproxy|byproxy-noaudit|byproxy-nobuilder|plain|plain+report" >&2; exit 2
   fi
 
   echo "[$TASK_NAME/$ARM rep $rep] running headless (timeout ${TIMEOUT_S}s)..." >&2
@@ -233,9 +233,9 @@ $PROMPT"
     # bare ANTHROPIC_API_KEY in your shell (which would hijack your interactive
     # Claude Code session). BYPROXY_ANTHROPIC_API_KEY, if set, maps to the
     # container's ANTHROPIC_API_KEY; an explicit ANTHROPIC_API_KEY still wins.
-    export ANTHROPIC_API_KEY="${ANTHROPIC_API_KEY:-${BYPROXY_ANTHROPIC_API_KEY:-}}"
+    export ANTHROPIC_API_KEY="${ANTHROPIC_API_KEY:-${NULLIUS_ANTHROPIC_API_KEY:-${BYPROXY_ANTHROPIC_API_KEY:-}}}"
     if [[ -z "${ANTHROPIC_API_KEY:-}" ]]; then
-      echo "CONTAINER=1 requires ANTHROPIC_API_KEY or BYPROXY_ANTHROPIC_API_KEY in the environment" >&2
+      echo "CONTAINER=1 requires ANTHROPIC_API_KEY or NULLIUS_ANTHROPIC_API_KEY in the environment" >&2
       exit 3
     fi
     # Preflight the credential TYPE. The Messages API path (-e ANTHROPIC_API_KEY)

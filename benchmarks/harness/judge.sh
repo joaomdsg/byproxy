@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Blind disclosure judge — byproxy benchmarks (see harness/README.md).
+# Blind disclosure judge — nullius benchmarks (see harness/README.md).
 #
 # Replaces score.sh's keyword-grep `caught` with a semantic judgment: given a
 # run's final report and its diff — with NO arm label — rule per seeded defect
@@ -11,7 +11,8 @@
 #   judge.sh <report-file> <diff-file> <defects.json>
 #
 # Env: JUDGE_MODEL (default claude-sonnet-5) picks the judge tier. Auth is the
-# host `claude` login, or ANTHROPIC_API_KEY/BYPROXY_ANTHROPIC_API_KEY if set.
+# host `claude` login, or ANTHROPIC_API_KEY/NULLIUS_ANTHROPIC_API_KEY (legacy
+# BYPROXY_ANTHROPIC_API_KEY honored) if set.
 #
 # Emits one JSON object on stdout:
 #   {judge_model, disclosures:[{id, disclosed, evidence}], disclosed_count}
@@ -21,7 +22,7 @@ set -uo pipefail
 REPORT="${1:?usage: judge.sh <report> <diff> <defects.json>}"
 DIFF="${2:?}"; DEFECTS="${3:?}"
 JUDGE_MODEL="${JUDGE_MODEL:-claude-sonnet-5}"
-: "${ANTHROPIC_API_KEY:=${BYPROXY_ANTHROPIC_API_KEY:-}}"; export ANTHROPIC_API_KEY
+: "${ANTHROPIC_API_KEY:=${NULLIUS_ANTHROPIC_API_KEY:-${BYPROXY_ANTHROPIC_API_KEY:-}}}"; export ANTHROPIC_API_KEY
 
 emit_err() { jq -n --arg m "$JUDGE_MODEL" --arg e "$1" --arg raw "${2:-}" \
   '{judge_model:$m, error:$e, raw:$raw}'; exit 0; }

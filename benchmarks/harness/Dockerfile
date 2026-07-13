@@ -1,5 +1,5 @@
 # nullius benchmark sandbox — a controlled, reproducible env for one headless
-# `claude` run. Both arms (byproxy, bare) can run inside this so the only
+# `claude` run. Any arm can run inside this so the only
 # variable across a campaign is the arm, not the host toolchain/CLI version.
 #
 # Pins that matter for reproducibility: the claude CLI version and the Go
