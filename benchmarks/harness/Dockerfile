@@ -1,10 +1,10 @@
-# byproxy benchmark sandbox — a controlled, reproducible env for one headless
+# nullius benchmark sandbox — a controlled, reproducible env for one headless
 # `claude` run. Both arms (byproxy, bare) can run inside this so the only
 # variable across a campaign is the arm, not the host toolchain/CLI version.
 #
 # Pins that matter for reproducibility: the claude CLI version and the Go
 # toolchain (matched to the task's go.mod `toolchain` directive). Build:
-#   docker build -t byproxy-bench:latest benchmarks/harness
+#   docker build -t nullius-bench:latest benchmarks/harness
 # Then run the harness with CONTAINER=1 (see run.sh).
 FROM node:22-bookworm-slim
 

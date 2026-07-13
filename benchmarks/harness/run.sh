@@ -1,19 +1,22 @@
 #!/usr/bin/env bash
-# byproxy benchmark harness — headless, unbiased, reproducible.
+# nullius benchmark harness — headless, unbiased, reproducible.
 #
-#   ./run.sh <task-dir> <arm: byproxy|byproxy-noaudit|byproxy-nobuilder|fable-lean|plain|plain+report> [--reps N] [--keep]
+#   ./run.sh <task-dir> <arm: nullius|fable-lean|byproxy|byproxy-noaudit|byproxy-nobuilder|plain|plain+report> [--reps N] [--keep]
 #
 # Each rep: fresh worktree from the task's pinned REF → one headless
 # `claude -p` run → score.sh replays DONE-WHEN independently (never trust
 # the run's self-report) → one JSONL row with measured cost.
 #
 # Arm model pins:
-#   byproxy  control plane = ORCH_MODEL (default sonnet-5 @ high — v6:
-#            measured, a resident fable-5 spends $9-10/run on context
-#            traffic alone; the premium tier is pinned to the critic agent
-#            only. explorer/builder tiers come from the agent definitions)
-#   solo     claude-opus-4-8 (the "just let the expensive model read the
-#            files" baseline; override with SOLO_MODEL=)
+#   nullius  leader = LEAN_MODEL (default fable-5 @ low) with haiku
+#            nullius-explorer scouts — the measured-best config
+#            (benchmark 7). `fable-lean` is the same arm under its
+#            historical name, kept so old reproduce commands work.
+#   byproxy* the archived v6 ceremony (archive/byproxy-v6/), runnable for
+#            reproduction: control plane = ORCH_MODEL (default sonnet-5 @
+#            high, as measured-and-refuted in benchmark 7)
+#   plain    claude-opus-4-8 (the "just let the expensive model read the
+#            files" baseline; override with PLAIN_MODEL=/SOLO_MODEL=)
 set -euo pipefail
 
 HARNESS_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -44,23 +47,23 @@ LEAN_MODEL="${LEAN_MODEL:-claude-fable-5}"
 LEAN_EFFORT="${LEAN_EFFORT:-low}"
 PLAIN_MODEL="${PLAIN_MODEL:-${SOLO_MODEL:-claude-opus-4-8}}"
 PLAIN_EFFORT="${PLAIN_EFFORT:-${SOLO_EFFORT:-}}"   # empty = harness default effort
-# Six arms (see harness/README.md). Two families plus the lean arm:
-#   byproxy families run the guard layer at ORCH_MODEL; plain families run
-#   PLAIN_MODEL with no guard layer. The ablations decompose the confounds:
+# Seven arm names, six configs (see harness/README.md):
+#   nullius (alias fable-lean, its pre-rename label) is the live
+#   methodology. The byproxy* family is the archived v6 ceremony, kept
+#   runnable for reproduction; its ablations decompose the old confounds:
 #   plain+report isolates the report-FORMAT effect on disclosure,
 #   byproxy-noaudit isolates the cold auditor's contribution, and
-#   byproxy-nobuilder isolates the orchestrator/builder SPLIT itself — same
-#   contracts, gate, and audit, but the orchestrator implements every unit
-#   itself (relevant since v6 put both roles on the same tier: what's left
-#   of the split is context partitioning vs round-trip + compression loss).
+#   byproxy-nobuilder isolates the orchestrator/builder SPLIT (measured:
+#   pure waste at same tier — benchmark 7).
 case "$ARM" in
+  nullius)           LABEL="${LABEL:-nullius-${LEAN_MODEL#claude-}-$LEAN_EFFORT}";;
+  fable-lean)        LABEL="${LABEL:-fable-lean-${LEAN_MODEL#claude-}-$LEAN_EFFORT}";;
   byproxy)           LABEL="${LABEL:-byproxy-${ORCH_MODEL#claude-}-$ORCH_EFFORT}";;
   byproxy-noaudit)   LABEL="${LABEL:-byproxy-noaudit-${ORCH_MODEL#claude-}-$ORCH_EFFORT}";;
   byproxy-nobuilder) LABEL="${LABEL:-byproxy-nobuilder-${ORCH_MODEL#claude-}-$ORCH_EFFORT}";;
-  fable-lean)        LABEL="${LABEL:-fable-lean-${LEAN_MODEL#claude-}-$LEAN_EFFORT}";;
   plain)             LABEL="${LABEL:-plain-${PLAIN_MODEL#claude-}${PLAIN_EFFORT:+-$PLAIN_EFFORT}}";;
   plain+report)      LABEL="${LABEL:-plain-report-${PLAIN_MODEL#claude-}${PLAIN_EFFORT:+-$PLAIN_EFFORT}}";;
-  *) echo "arm must be byproxy|byproxy-noaudit|byproxy-nobuilder|fable-lean|plain|plain+report" >&2; exit 2;;
+  *) echo "arm must be nullius|fable-lean|byproxy|byproxy-noaudit|byproxy-nobuilder|plain|plain+report" >&2; exit 2;;
 esac
 
 # Symmetric disclosure (threat #4). Every arm is asked to disclose, so `caught`
@@ -135,10 +138,11 @@ for rep in $(seq 1 "$REPS"); do
       Bash(git diff*) Bash(git status*) Bash(git log*) Bash(git show*)
       Bash(ls*) Bash(cat*) Bash(grep*) Bash(rg*) Bash(find*) Bash(wc*)")
   if [[ "$ARM" == "byproxy" || "$ARM" == "byproxy-noaudit" || "$ARM" == "byproxy-nobuilder" ]]; then
-    # wire the skill + agents into the worktree so headless picks them up
+    # The archived v6 ceremony (kept runnable for reproduction): wire its
+    # skill + agents into the worktree so headless picks them up.
     mkdir -p "$WT/.claude"
-    cp -r "$BYPROXY_ROOT/.claude/skills" "$WT/.claude/skills"
-    cp -r "$BYPROXY_ROOT/.claude/agents" "$WT/.claude/agents"
+    cp -r "$BYPROXY_ROOT/archive/byproxy-v6/skills" "$WT/.claude/skills"
+    cp -r "$BYPROXY_ROOT/archive/byproxy-v6/agents" "$WT/.claude/agents"
     CLAUDE_ARGS+=(--model "$ORCH_MODEL" --effort "$ORCH_EFFORT")
     # Ablation: byproxy-noaudit runs the whole guard layer EXCEPT the cold
     # auditor, isolating what the audit itself buys. Remove the agent so it
@@ -178,26 +182,27 @@ for rep in $(seq 1 "$REPS"); do
     # task (measured: 2/3 byproxy arms ignored it and ran solo). Inject the
     # skill body (minus YAML frontmatter) as an appended system prompt so the
     # guard workflow governs the whole run whether or not the Skill tool fires.
-    SKILL_BODY="$(awk 'f{print} /^---[[:space:]]*$/{c++; if(c==2) f=1}' "$BYPROXY_ROOT/.claude/skills/byproxy/SKILL.md")"
+    SKILL_BODY="$(awk 'f{print} /^---[[:space:]]*$/{c++; if(c==2) f=1}' "$BYPROXY_ROOT/archive/byproxy-v6/skills/byproxy/SKILL.md")"
     CLAUDE_ARGS+=(--append-system-prompt "You are operating under the byproxy v6 methodology. This is not optional and overrides any instinct to complete the task solo. ${ROLE_CLAUSE} You MUST run the full workflow with real subagent dispatches via the Agent tool: byproxy-explorer recon + surgical read, a byproxy-critic red-team of your contract, the compiled gate, ${BUILD_CLAUSE} — and ${AUDIT_CLAUSE}.${EDIT_GUARD} This is a headless run with NO USER available: at ESCALATE, use the self-answer fallback (author the question batch, answer each with your best-judgment recommendation, record all in ASSUMED as self-answered). Never call AskUserQuestion. Do not end your turn until you have reported STATUS/FACTS/RISKS/UNKNOWN/ASSUMED.${AUDIT_OVERRIDE}${BUILD_OVERRIDE} The methodology:
 
 $SKILL_BODY")
     RUN_PROMPT="Complete this task under the byproxy v6 methodology in your system prompt: explorer recon, surgical read, contract, critic red-team, gate, $STEP_TAIL — $HANDS_LINE — before you finish.
 
 $PROMPT"
-  elif [[ "$ARM" == "fable-lean" ]]; then
-    # Lean arm: top-tier model HANDS-ON (the measured 5/6-quality profile)
-    # with the context diet as the ONLY methodology — no contracts, critic,
-    # gate, or audit. Haiku explorers absorb the bulk context growth (test
-    # runs, sweeps, reruns) in throwaway contexts billed at haiku prices;
-    # the resident premium context stays surgical. Design note from the
-    # measured record: report-mediated intake can exceed raw reading (v5's
-    # orchestrator took in MORE report tokens than plain fable read raw),
-    # so the leader still reads the few decisive files itself, once.
+  elif [[ "$ARM" == "nullius" || "$ARM" == "fable-lean" ]]; then
+    # The live methodology (fable-lean is its pre-rename label): top-tier
+    # leader HANDS-ON with the context diet as the ONLY methodology — no
+    # contracts, critic, gate, or audit. Haiku scouts absorb the bulk
+    # context growth (test runs, sweeps, reruns) in throwaway contexts
+    # billed at haiku prices; the resident premium context stays surgical.
+    # Design note from the measured record: report-mediated intake can
+    # exceed raw reading (v5's orchestrator took in MORE report tokens
+    # than plain fable read raw), so the leader still reads the few
+    # decisive files itself, once.
     mkdir -p "$WT/.claude/agents"
-    cp "$BYPROXY_ROOT/.claude/agents/byproxy-explorer.md" "$WT/.claude/agents/"
+    cp "$BYPROXY_ROOT/.claude/agents/nullius-explorer.md" "$WT/.claude/agents/"
     CLAUDE_ARGS+=(--model "$LEAN_MODEL" --effort "$LEAN_EFFORT")
-    CLAUDE_ARGS+=(--append-system-prompt "You are a senior engineer working this task HANDS-ON, under one hard operating constraint: your context window is the bill — every token that enters it is re-paid on every turn that follows, so you finish lean or you finish expensive. The diet governs CONTEXT, never scope: you do ALL the work the task demands, cheaply. Discipline, non-negotiable: (1) DELEGATE BULK: never run builds, tests, vet, or broad searches yourself, and never read whole files you are not about to edit — dispatch byproxy-explorer subagents (Agent tool; cheap throwaway contexts) for every such job, BATCHED in parallel when independent; they return capped reports and their runs are your trusted record. (2) HUNT WIDE, THROUGH EXPLORERS: delegation applies to discovery too. Early, batch explorers to sweep EVERY corner of the mandate's code with these lenses, each answered with QUOTED MECHANISMS, never claims: for every shared mutable state AND every mutating entrypoint (handler, action, callback), quote the lock acquisition inside the entrypoint's OWN BODY — a mutex field, a doc comment, or a sibling function's lock is not serialization, and an entrypoint whose body takes no lock IS the finding; for every effect that must survive a fault (a write that can fail, a connection that can drop, a queue drained then re-sent), quote what preserves it — anything cleared before its write is confirmed IS the finding; for every per-session/per-scope state, quote the scope argument at the fan-out/broadcast call site — a nil or missing scope filter IS the finding; for every wake/notify predicate deciding WHO gets woken or re-rendered, quote the condition and check it can actually be false (an always-true predicate IS the finding) and that its reads are under the same lock as its writes; plus lost updates, lifecycle races, and error paths that swallow. Their FACTS name suspects; you read the decisive lines yourself and rule. Comments lie; only quoted code counts. (3) READ SURGICALLY, ONCE: read the few files you will edit yourself, one time; never re-read what you already hold; never re-verify what an explorer verified. (4) If you must run a command yourself, bound it: append '2>&1 | tail -n 20'. (5) BUILD YOURSELF: you design and write all code and tests directly — tests first for behavior you change or fix; then ONE explorer rerun of the decisive tests proves it (under -race for any concurrency claim — the race detector works in this environment), not repeated personal runs. (6) FIX EVERYTHING IN-MANDATE: under a fix-at-root mandate, a defect you have confirmed is FIXED test-first before you close — never merely disclosed. RISKS is for what you could not confirm or what is genuinely out of mandate, each with its reason; a confirmed in-mandate defect left as a disclosure is a failed run. (7) VERIFY CLAIMS BEFORE CLOSE: every serialization/isolation/fault-safety property your fixes or tests RELY on must be verified against quoted code, not comments or declarations; and for each test you wrote, name the code change that would make it fail — a test you cannot articulate a failure for is vacuous and proves nothing. (8) CLOSE: one explorer run of the full suite + go vet, then report. This is a headless run with no user available — never call AskUserQuestion; make the call, record it under ASSUMED. Spend your turns hunting and fixing, never re-verifying; aim to finish within ~35 of your own turns.")
+    CLAUDE_ARGS+=(--append-system-prompt "You are a senior engineer working this task HANDS-ON, under one hard operating constraint: your context window is the bill — every token that enters it is re-paid on every turn that follows, so you finish lean or you finish expensive. The diet governs CONTEXT, never scope: you do ALL the work the task demands, cheaply. Discipline, non-negotiable: (1) DELEGATE BULK: never run builds, tests, vet, or broad searches yourself, and never read whole files you are not about to edit — dispatch nullius-explorer subagents (Agent tool; cheap throwaway contexts) for every such job, BATCHED in parallel when independent; they return capped reports and their runs are your trusted record. (2) HUNT WIDE, THROUGH EXPLORERS: delegation applies to discovery too. Early, batch explorers to sweep EVERY corner of the mandate's code with these lenses, each answered with QUOTED MECHANISMS, never claims: for every shared mutable state AND every mutating entrypoint (handler, action, callback), quote the lock acquisition inside the entrypoint's OWN BODY — a mutex field, a doc comment, or a sibling function's lock is not serialization, and an entrypoint whose body takes no lock IS the finding; for every effect that must survive a fault (a write that can fail, a connection that can drop, a queue drained then re-sent), quote what preserves it — anything cleared before its write is confirmed IS the finding; for every per-session/per-scope state, quote the scope argument at the fan-out/broadcast call site — a nil or missing scope filter IS the finding; for every wake/notify predicate deciding WHO gets woken or re-rendered, quote the condition and check it can actually be false (an always-true predicate IS the finding) and that its reads are under the same lock as its writes; plus lost updates, lifecycle races, and error paths that swallow. Their FACTS name suspects; you read the decisive lines yourself and rule. Comments lie; only quoted code counts. (3) READ SURGICALLY, ONCE: read the few files you will edit yourself, one time; never re-read what you already hold; never re-verify what an explorer verified. (4) If you must run a command yourself, bound it: append '2>&1 | tail -n 20'. (5) BUILD YOURSELF: you design and write all code and tests directly — tests first for behavior you change or fix; then ONE explorer rerun of the decisive tests proves it (under -race for any concurrency claim — the race detector works in this environment), not repeated personal runs. (6) FIX EVERYTHING IN-MANDATE: under a fix-at-root mandate, a defect you have confirmed is FIXED test-first before you close — never merely disclosed. RISKS is for what you could not confirm or what is genuinely out of mandate, each with its reason; a confirmed in-mandate defect left as a disclosure is a failed run. (7) VERIFY CLAIMS BEFORE CLOSE: every serialization/isolation/fault-safety property your fixes or tests RELY on must be verified against quoted code, not comments or declarations; and for each test you wrote, name the code change that would make it fail — a test you cannot articulate a failure for is vacuous and proves nothing. (8) CLOSE: one explorer run of the full suite + go vet, then report. This is a headless run with no user available — never call AskUserQuestion; make the call, record it under ASSUMED. Spend your turns hunting and fixing, never re-verifying; aim to finish within ~35 of your own turns.")
     RUN_PROMPT="$PROMPT$FULL_RISKS"
   elif [[ "$ARM" == "plain" ]]; then
     CLAUDE_ARGS+=(--model "$PLAIN_MODEL")
@@ -250,7 +255,7 @@ $PROMPT"
       -e GOCACHE=/home/agent/.cache/go-build -e GOPATH=/home/agent/go \
       -v "$WT:/work" -w /work \
       -v "$CHOME:/home/agent" \
-      byproxy-bench:latest claude "${CLAUDE_ARGS[@]}" \
+      nullius-bench:latest claude "${CLAUDE_ARGS[@]}" \
       > "$RAW" 2>"$RAW.stderr"
   else
     (cd "$WT" && printf '%s' "$RUN_PROMPT" | timeout "$TIMEOUT_S" claude "${CLAUDE_ARGS[@]}") > "$RAW" 2>"$RAW.stderr"
@@ -269,7 +274,7 @@ $PROMPT"
   # Task calls, and specifically byproxy-explorer ones.
   DISPATCHES="$(jq -rc 'select(.type=="assistant") | .message.content[]? | select(.type=="tool_use" and (.name=="Task" or .name=="Agent")) | (.input.subagent_type // "unknown")' "$RAW" 2>/dev/null)"
   DISPATCH_N="$(printf '%s' "$DISPATCHES" | grep -c . || true)"
-  EXPLORER_N="$(printf '%s\n' "$DISPATCHES" | grep -c 'byproxy-explorer' || true)"
+  EXPLORER_N="$(printf '%s\n' "$DISPATCHES" | grep -cE 'byproxy-explorer|nullius-explorer' || true)"
   CRITIC_N="$(printf '%s\n' "$DISPATCHES" | grep -c 'byproxy-critic' || true)"
   BUILDER_N="$(printf '%s\n' "$DISPATCHES" | grep -c 'byproxy-builder' || true)"
   AUDITOR_N="$(printf '%s\n' "$DISPATCHES" | grep -c 'byproxy-auditor' || true)"

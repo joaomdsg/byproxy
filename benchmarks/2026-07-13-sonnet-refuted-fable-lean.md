@@ -179,3 +179,14 @@ Raw rows: `harness/results/results.jsonl` (arms `byproxy-v6-sonnet-high`,
 `plain-fable-5-low`). Reproduce: `CONTAINER=1 JUDGE=1 ./run.sh
 tasks/vialite-todo fable-lean --reps 3` (config pinned in run.sh's
 `fable-lean` arm; LEAN_MODEL/LEAN_EFFORT to override).
+
+**Postscript (same day):** a post-gcc baseline rerun added one valid
+plain-fable rep — $8.49, 4/6, race-dirty — before the API credit pool
+exhausted (two further reps died on "credit balance too low" and were
+scrubbed). The baseline is therefore n=2 and high-variance ($8.49–$17.09,
+4–5/6); against its mean, fable-lean is ~49% of cost at clearly better
+quality (5.75 vs 4.5 mean fixed, 4/4 vs 1/2 race-clean). The full n=3
+post-gcc baseline remains owed. Separately, fable-lean was promoted to the
+project methodology and renamed **nullius** (`.claude/skills/nullius/`);
+the ceremony moved to `archive/byproxy-v6/`, and the harness gained a
+`nullius` arm name with `fable-lean` kept as the alias used above.

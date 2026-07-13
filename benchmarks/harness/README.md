@@ -1,6 +1,7 @@
 # Benchmark harness
 
-Headless, unbiased, reproducible byproxy-vs-plain runs. Replaces the inline
+Headless, unbiased, reproducible nullius-vs-plain runs (plus the archived
+byproxy ceremony arms, kept runnable for reproduction). Replaces the inline
 orchestration used for benchmarks 1–2, which had four biases: a
 terrain-contaminated orchestrator, unmeasured orchestrator cost,
 experimenter steering mid-run, and single samples.
@@ -15,39 +16,41 @@ experimenter steering mid-run, and single samples.
   vet + full race suite against the tree. A run's self-report is never
   trusted (observed failure mode: builder reported green with a broken
   test build).
-- Model pins: byproxy arm control plane = **claude-sonnet-5 @ high effort**
-  (v6 — measured: ~80% of run cost is context traffic, and a *resident*
-  fable-5 orchestrator spent $9–10/run on that traffic alone; the premium
-  tier is pinned to the one small-context judgment call, the critic, via
-  its agent definition). Override with `ORCH_MODEL=`/`ORCH_EFFORT=`;
-  explorer/builder/critic tiers come from the agent definitions. Plain
-  arm = **claude-opus-4-8** (the "just let the expensive model read the
-  files" baseline; override with `PLAIN_MODEL=`, or legacy `SOLO_MODEL=`).
+- Model pins: `nullius` leader = **claude-fable-5 @ low effort** (override
+  `LEAN_MODEL=`/`LEAN_EFFORT=`); the archived byproxy control plane =
+  `ORCH_MODEL`/`ORCH_EFFORT` (default sonnet-5 @ high, as
+  measured-and-refuted in benchmark 7). Plain arm = **claude-opus-4-8**
+  (the "just let the expensive model read the files" baseline; override
+  with `PLAIN_MODEL=`, or legacy `SOLO_MODEL=`).
 
-Six arms:
+Seven arm names, six configs:
 
-- `plain` — plain Claude Code, no byproxy skills/agents, no global config
-  (**not** "no subagents"; the native subagent scaffold is still there).
-  Gets a minimal symmetric disclosure ask so `caught` is measured fairly.
-- `byproxy` — the full guard layer (v6), forced via the appended methodology.
-- `plain+report` — `plain` **plus** the full RISKS report format, no guard
-  layer: isolates whether the report *format* alone drives disclosure.
-- `byproxy-noaudit` — the full guard layer **minus** the cold auditor:
-  isolates what the audit itself buys (row must show `auditor_dispatches:0`).
-- `byproxy-nobuilder` — the guard layer with the orchestrator/builder
-  **split** removed: same contracts, critic, gate, and cold audit, but the
-  orchestrator implements every unit itself (row must show
-  `builder_dispatches:0`). Measured (benchmark 7): the split is pure waste
-  at same tier — −38% cost, quality unchanged.
-- `fable-lean` — **the measured-best config (benchmark 7)**: no ceremony at
-  all. A hands-on top-tier leader (default `claude-fable-5@low`; override
-  `LEAN_MODEL=`/`LEAN_EFFORT=`) that delegates all bulk context — builds,
-  tests, sweeps, verification reruns — to throwaway haiku explorers, hunts
-  with quoted-mechanism lenses, and fixes everything confirmed in-mandate
-  before close. Confirmed n=4: quality ≥ plain fable every rep at 36% of
-  its cost.
+- `nullius` — **the live methodology and measured-best config (benchmark
+  7)**: no ceremony at all. A hands-on top-tier leader that delegates all
+  bulk context — builds, tests, sweeps, verification reruns — to throwaway
+  haiku `nullius-explorer` scouts, hunts with quoted-mechanism lenses, and
+  fixes everything confirmed in-mandate before close. Confirmed n=4:
+  quality ≥ plain fable every rep, race-clean, 0 regressions, at 36% of
+  the dearest baseline rep (~half the honest n=2 baseline mean).
+- `fable-lean` — the same arm under its pre-rename label, kept so the
+  benchmark-7 reproduce commands work verbatim.
+- `plain` — plain Claude Code, no nullius/byproxy skills or agents, no
+  global config (**not** "no subagents"; the native subagent scaffold is
+  still there). Gets a minimal symmetric disclosure ask so `caught` is
+  measured fairly.
+- `plain+report` — `plain` **plus** the full RISKS report format: isolates
+  whether the report *format* alone drives disclosure.
+- `byproxy` — the archived v6 ceremony (`archive/byproxy-v6/`), forced via
+  the appended methodology. Runnable for reproduction; refuted in
+  benchmark 7.
+- `byproxy-noaudit` — the ceremony **minus** the cold auditor: isolates
+  what the audit itself buys (row must show `auditor_dispatches:0`).
+- `byproxy-nobuilder` — the ceremony with the orchestrator/builder
+  **split** removed (row must show `builder_dispatches:0`). Measured
+  (benchmark 7): the split is pure waste at same tier — −38% cost, quality
+  unchanged.
 
-**`plain` means plain Claude Code with no byproxy skills/agents and no global
+**`plain` means plain Claude Code with no nullius/byproxy skills or agents and no global
 config — not "no subagents".** Every arm gets the same allowlist, native
 subagent dispatch included; they differ only by the guard layer and the
 report ask. Run under `CONTAINER=1` for the "no global config" guarantee
@@ -64,8 +67,8 @@ tier is `JUDGE_MODEL` (default `claude-sonnet-5`).
 ## Usage
 
 ```sh
-./run.sh tasks/p34-uploads byproxy --reps 3
-./run.sh tasks/p34-uploads plain   --reps 3
+CONTAINER=1 JUDGE=1 ./run.sh tasks/vialite-todo nullius --reps 3
+CONTAINER=1 JUDGE=1 ./run.sh tasks/vialite-todo plain   --reps 3
 jq -s 'group_by(.arm) | map({arm:.[0].arm,
   mean_cost:(map(.cost_usd)|add/length),
   complete:(map(.score.complete)|map(select(.))|length)})' results/results.jsonl
@@ -81,7 +84,7 @@ usage breakdown) lands next to `results.jsonl` in `results/`.
 a campaign is the arm, not the host. Build once, then:
 
 ```sh
-docker build -t byproxy-bench:latest .
+docker build -t nullius-bench:latest .
 export BYPROXY_ANTHROPIC_API_KEY=sk-ant-api03-...   # namespaced; won't hijack
                                                     # your interactive session
 CONTAINER=1 ./run.sh tasks/vialite-todo plain --reps 5
@@ -99,7 +102,7 @@ for this and fails fast. The container runs as the invoking
 stay host-owned and scoring/cleanup are unchanged. Networking is the
 default bridge (outbound-only); the container is otherwise isolated.
 
-The image is a fixed `byproxy-bench:latest` — deliberately not overridable.
+The image is a fixed `nullius-bench:latest` — deliberately not overridable.
 A controlled env that can be swapped per run isn't controlled; the CLI and
 toolchain pins live in the `Dockerfile` (rebuild to change them, on purpose).
 The image ships `gcc` with `CGO_ENABLED=1` so the race detector works
