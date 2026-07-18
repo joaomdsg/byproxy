@@ -1,0 +1,11 @@
+{
+  "name": "nullius-local",
+  "owner": { "name": "Joao Goncalves" },
+  "plugins": [
+    {
+      "name": "nullius",
+      "source": "./",
+      "description": "Starved-orchestrator lean methodology for Claude Code."
+    }
+  ]
+}
