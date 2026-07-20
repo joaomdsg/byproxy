@@ -25,27 +25,33 @@ the growth term directly.
     comments or trailing `;` are left unrewritten/normalized (both broke
     the `{ …; }` wrapper); the rewrite carries NO permission decision, so
     the user's normal permission prompt still applies;
-  - allows main-thread Edit of SOURCE only when small (≤ `NULLIUS_MAX_EDIT`,
-    25 changed lines — measured: a 12-line cap routed defect-sized fixes to
-    sonnet craftsmen at 2× run cost) — bigger edits steer to craftsman;
-    docs/config edits
-    are exempt (consistent with Write); Write allowed for
-    tests (any size), scaffolding/config (not source), API skeletons
-    (decl-dense: ≥1 exported decl per 30 lines), and small files
-    (≤ `NULLIUS_MAX_WRITE`, 120 lines) — implementation bulk steers to
-    craftsman;
+  - NO size cap on main-thread Edit/Write (measured 2026-07-19): a
+    PreToolUse hook fires *after* the model generated the file, so a
+    size-deny only makes the craftsman regenerate the same bytes —
+    double-billing. The delegate-vs-write crossover (~1,800 lines cold /
+    ~130 lean for an Opus leader) is set by variables a hook can't see,
+    so the decision lives in the doctrine, before generation. The
+    tests-first ratchet still applies (every `NULLIUS_EDITS_PER_TEST`
+    source edits require a test-file touch);
   - boundary gate: edits that remove/rename exported symbols are DENIED in
     craftsman hands (design decisions escalate up) and ALLOWED on the main
-    thread at any size — boundary-shaping is the orchestrator's, exempt
-    from the small-edit cap;
+    thread at any size — boundary-shaping is the orchestrator's. This gate
+    catches a *regression*, so its one wasted generation is worth it;
   - craftsman tests-first gate: inside nullius-craftsman, the first
     Edit/Write must touch a test file or SOURCE edits are denied
     (scaffolding/config/docs are exempt — nothing to test).
 
-  Known limitation: mechanical cross-file renames route >12-line call-site
-  batches through craftsman and its tests-first gate — churn for a
-  mechanical change. Current answer is the blunt `.nullius-off` toggle.
-  - Escapes: `#nullius:ok` in a command, `.nullius-off` file, `NULLIUS_OFF=1`.
+  - MCP gate: main-thread `mcp__*` calls with bulk-verb names
+    (read/fetch/search/list/query/…) are steered to scouts — MCP responses
+    are otherwise ungoverned bulk; `NULLIUS_MCP_OK=1` disables;
+  - QUICK mode (`.nullius-quick`, auto-expires after 4h /
+    `NULLIUS_QUICK_TTL_H`): diet-lite for trivial tasks — sweeps, reads,
+    edits, MCP, heavy Bash all pass, only tail-bounding stays. Toggled by
+    `/nullius:quick`; also the answer for mechanical cross-file renames;
+  - session telemetry: denies/rewrites/dispatches (per agent type) counted
+    in `$TMPDIR/nullius-stats-<session>`, reported by `/nullius:diet status`.
+  - Escapes: `#nullius:ok` in a command, `.nullius-quick` (diet-lite, 4h),
+    `.nullius-off` file, `NULLIUS_OFF=1`.
 - **Agents**: `nullius-scout` (haiku — absorption, terrain maps, and the
   close-out record: full suite + linters + exported-surface diff, ≤40-line
   anchored testimony), `nullius-lens-hunter` (haiku — one lens over named
@@ -60,10 +66,17 @@ the growth term directly.
   and the leader builds under the diet alone; doubt → FULL. Capped ruled
   checklist with no line left unruled; out-of-mandate has a cost; close
   via scout record + surface diff in every mode).
-- **Commands**: `/nullius:hunt`, `/nullius:close`, `/nullius:diet on|off|status`.
+- **Commands**: `/nullius:hunt`, `/nullius:close`, `/nullius:quick on|off|status`,
+  `/nullius:diet on|off|status`.
+- **Terrain cache**: the close writes `.nullius/terrain.md` (commit-stamped,
+  ≤60 lines); the next session's Turn A validates it with one scout and
+  re-maps only the git drift — session 2+ stops re-paying absorption.
 - **Tests**: `node --test hooks/diet-governor.test.mjs` — behavioral suite piping synthetic
   PreToolUse payloads through the governor (rewrite validity, exit-code
-  preservation, no auto-approve, gates, ledger, craftsman markers).
+  preservation, no auto-approve, gates, ledger, craftsman markers, QUICK
+  mode + expiry, MCP gate, telemetry).
+- **Tracker**: [ROADMAP.md](ROADMAP.md) — day-to-day blind spots, ranked,
+  with measured basis and status.
 
 ## Lessons from the measured runs baked in
 
@@ -78,7 +91,8 @@ the growth term directly.
 | greenfield-ledger: full process on empty lens terrain = +78% cost, 2.3× wall, identical 29/29 quality vs plain | terrain gate: quoted absences → BUILD mode (ceremony stands down, diet stays); doubt → FULL |
 | Context bloat from re-reads and command floods | duplicate-read ledger, tail-bounding, whole-read cap |
 | Judgment delegated downtier capped at 3/6 | orchestrator rules on decisive lines itself; agents never decide |
-| 7 craftsman dispatches = $4.58 of a $13.27 run (rep 1); published consensus: delegated writes are the tax | edit cap 12→25; craftsman demoted to last resort — intelligence fans out, writes stay home |
+| 7 craftsman dispatches = $4.58 of a $13.27 run (rep 1); published consensus: delegated writes are the tax | craftsman demoted to last resort — intelligence fans out, writes stay home |
+| Size-cap deny fires *after* the model generated the file → double-billing; crossover (~1,800 lines cold / ~130 lean, Opus leader) needs vars a hook can't see (measured 2026-07-19) | removed Write/Edit size caps; delegate-or-write is a pre-generation doctrine decision; hook keeps only correctness gates (tests-first, boundary) |
 
 ## Install (local)
 

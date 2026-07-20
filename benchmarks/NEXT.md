@@ -105,14 +105,20 @@ Nobody publishes same-task, same-model, prevention-vs-compaction. We
 have both arms nearly free: cc-nullius IS prevention; a plain run driven
 past its context ceiling is compaction.
 
-**Design:** vialite-todo (the defect oracle discriminates; greenfield
-ceilinged). Force the compaction arm through at least one auto-compact
-by inflating resident context honestly — the task prompt requires
-reading the full repo before acting (no artificial padding; the bloat is
-the natural cost of not delegating reads). Same model/effort both arms
-(fable-5 low). Measure: defects fixed, regression count, cost, turns,
-number of compactions, and WHERE the misses fall relative to the
-compaction boundary.
+**Design (amended pre-run 2026-07-18):** vialite-todo (the defect oracle
+discriminates; greenfield ceilinged). Fable-5 runs a 1M window in the
+CLI, so no honest corpus reaches auto-compact naturally; instead BOTH
+arms run under the same fixed context budget —
+`CLAUDE_CODE_AUTO_COMPACT_WINDOW=120000`, a realistic 128k-class window —
+and the same mandate suffix (`harness/extra/familiarization-full.md`:
+full familiarization with all Go sources + the 23 docs pages, ~120k
+tokens if held resident, with per-fix doc citations so the reading is
+load-bearing). Prevention (cc-nullius) satisfies it through scouts and
+stays under budget; plain holds it resident and compacts through it.
+Same model/effort both arms (fable-5 low). Rows now record `compactions`
+(compact_boundary count in the stream) + `compact_window`. Measure:
+defects fixed, regression count, cost, turns, compaction count, and
+WHERE the misses fall relative to the compaction boundary.
 
 **Prediction (n=2/arm):** the compaction arm loses exactly the
 checklist-tail defects — items established before the compact and never

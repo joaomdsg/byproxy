@@ -1,8 +1,18 @@
 {
   "hooks": {
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"${CLAUDE_PLUGIN_ROOT}/hooks/session-start.mjs\""
+          }
+        ]
+      }
+    ],
     "PreToolUse": [
       {
-        "matcher": "Read|Grep|Glob|WebFetch|WebSearch|Bash|Edit|Write",
+        "matcher": "Read|Grep|Glob|WebFetch|WebSearch|Bash|Edit|Write|Agent|Task|mcp__.*",
         "hooks": [
           {
             "type": "command",

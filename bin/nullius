@@ -1,0 +1,55 @@
+#!/usr/bin/env bash
+# nullius — daily-driver launcher for the nullius starved-orchestrator workflow.
+# Drops you into an interactive Claude Code session pre-wired with nullius: the
+# diet governor + agents + doctrine (via the installed plugin) PLUS the
+# `nullius-build` recursion primitive on PATH, so the session can hand large
+# builds to nested nullius sessions ("Opus guides lean, doesn't duplicate").
+#
+# Usage:
+#   nullius [repo-dir]        # launch in repo-dir (default: current dir)
+#   nullius --check           # verify wiring, don't launch
+set -euo pipefail
+
+DIR="$PWD"
+CHECK=0
+for a in "$@"; do
+  case "$a" in
+    --check) CHECK=1;;
+    *) DIR="$a";;
+  esac
+done
+cd "$DIR"
+
+ok=1
+note() { printf '  %s %s\n' "$1" "$2"; }
+
+# 1. plugin present + enabled?
+if claude plugin list 2>/dev/null | grep -q 'nullius@nullius-local'; then
+  if claude plugin list 2>/dev/null | grep -A3 'nullius@nullius-local' | grep -q 'enabled'; then
+    note "✓" "plugin nullius@nullius-local enabled"
+  else
+    note "✗" "plugin installed but NOT enabled — run: claude plugin enable nullius@nullius-local"; ok=0
+  fi
+else
+  note "✗" "plugin not installed — run: claude plugin marketplace add <repo>/cc-nullius && claude plugin install nullius@nullius-local"; ok=0
+fi
+
+# 2. recursion primitive on PATH?
+if command -v nullius-build >/dev/null 2>&1; then
+  note "✓" "nullius-build on PATH ($(command -v nullius-build))"
+else
+  note "✗" "nullius-build not on PATH — symlink bin/nullius-build into ~/.local/bin"; ok=0
+fi
+
+# 3. in a git repo? (terrain cache + surface diff want it)
+if git rev-parse --is-inside-work-tree >/dev/null 2>&1; then
+  note "✓" "git repo: $(git rev-parse --show-toplevel) ($(git branch --show-current 2>/dev/null || echo detached))"
+else
+  note "·" "not a git repo — scout close-out surface diff will be limited"
+fi
+
+[[ "$CHECK" == "1" ]] && { [[ "$ok" == "1" ]] && echo "nullius: ready." || echo "nullius: fix the ✗ items above."; exit $((1-ok)); }
+[[ "$ok" == "1" ]] || { echo "nullius: wiring incomplete (see ✗ above) — launching anyway." >&2; }
+
+echo "nullius: launching co-pilot in $DIR — invoke /nullius on any nontrivial task; delegate large builds with nullius-build."
+exec claude

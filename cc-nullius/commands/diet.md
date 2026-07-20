@@ -8,6 +8,13 @@ Manage the nullius diet governor. Argument: $ARGUMENTS (on | off | status; defau
   (`touch .nullius-off  #nullius:ok`). The governor allows everything
   while it exists. Warn the user the orchestrator is now unstarved.
 - **on**: remove `.nullius-off` (`rm -f .nullius-off  #nullius:ok`).
-- **status**: report whether `.nullius-off` exists or `NULLIUS_OFF=1` is
-  set, plus current `NULLIUS_MAX_READ` / `NULLIUS_TAIL_LINES` (defaults
-  250 / 30).
+- **status**: report, in one compact block:
+  - mode: OFF (`.nullius-off` or `NULLIUS_OFF=1`), QUICK (`.nullius-quick`
+    fresh — see /nullius:quick), or ON;
+  - knobs: `NULLIUS_MAX_READ` / `NULLIUS_EDITS_PER_TEST` / `NULLIUS_TAIL_LINES`
+    (defaults 250 / 4 / 30); Write/Edit have no size cap;
+  - session telemetry: `cat "${TMPDIR:-/tmp}"/nullius-stats-*  #nullius:ok`
+    (best-effort JSON per session: denies, rewrites, dispatches incl.
+    per-agent-type, quick_passes). Report the counts and what they say
+    about this session's economics — e.g. many denies means you are
+    fighting the governor instead of routing around it.

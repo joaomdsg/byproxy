@@ -1,0 +1,67 @@
+#!/usr/bin/env bash
+# nullius-build — the recursion primitive: hand a large, self-contained build to
+# a NESTED nullius session (sonnet craftsman + haiku scouts) so the calling
+# session's own context stays lean. This is the piece the plugin structurally
+# can't do (subagents can't spawn subagents) — recursion needs a nested
+# `claude -p`. Measured 2026-07-20 on a 154k-token frontend port: 3.1x cheaper
+# and it COMPLETED where a plain cold sonnet run timed out ($5.54 vs $17.19),
+# because haiku holds the bulk and the sonnet holds only capped reports.
+#
+# Usage:
+#   nullius-build "<lean brief>"            # build in the current dir
+#   nullius-build "<lean brief>" <dir>      # build in <dir>
+#   nullius-build @brief.md <dir>           # read the brief from a file
+#   echo "<brief>" | nullius-build -        # read the brief from stdin
+# Options (env or flags):
+#   --model M         craftsman model (default claude-sonnet-5)
+#   --max-read N      force scout delegation above N lines (default 80)
+#   --dry-run         print the invocation, run nothing
+#
+# The caller (an Opus co-pilot session) should pass a LEAN brief: the intent,
+# the target API/contract, and pointers to the code to absorb — NOT the code
+# itself. The nested session absorbs the specifics through haiku scouts.
+set -euo pipefail
+
+MODEL="${NULLIUS_BUILD_MODEL:-claude-sonnet-5}"
+MAXREAD="${NULLIUS_MAX_READ:-80}"
+DRY=0
+args=()
+while [[ $# -gt 0 ]]; do
+  case "$1" in
+    --model) MODEL="$2"; shift 2;;
+    --max-read) MAXREAD="$2"; shift 2;;
+    --dry-run) DRY=1; shift;;
+    *) args+=("$1"); shift;;
+  esac
+done
+[[ ${#args[@]} -ge 1 ]] || { echo "usage: nullius-build \"<brief>\" [dir]  (or @file, or - for stdin)" >&2; exit 2; }
+
+RAW="${args[0]}"
+DIR="${args[1]:-$PWD}"
+if [[ "$RAW" == "-" ]]; then BRIEF="$(cat)"
+elif [[ "$RAW" == @* ]]; then BRIEF="$(cat "${RAW#@}")"
+else BRIEF="$RAW"; fi
+[[ -d "$DIR" ]] || { echo "nullius-build: not a directory: $DIR" >&2; exit 2; }
+
+PREAMBLE="You are a nullius CRAFTSMAN — a nested, delegated build session. The calling agent has already done the high-level reasoning and hands you the lean brief that follows; do NOT re-derive it and do NOT re-read the whole codebase yourself. Absorb every code specific you need (types, signatures, surrounding logic, existing helpers) through nullius-scout (haiku) dispatches, batched in parallel — never whole-read the repo on your own thread; the diet governor will steer you. Build test-first where behavior is testable. Close with a scout record: build + the project's checks, and the exported-surface diff. Headless run, no user: never ask questions — make the call and record it under ASSUMED. Report STATUS/FACTS/RISKS/UNKNOWN/ASSUMED. The caller's lean brief follows as your prompt."
+
+if [[ "$DRY" == "1" ]]; then
+  echo "dir:       $DIR"
+  echo "model:     $MODEL"
+  echo "max-read:  $MAXREAD"
+  echo "brief:     ${BRIEF:0:200}$([[ ${#BRIEF} -gt 200 ]] && echo ' …')"
+  echo "command:   NULLIUS_MAX_READ=$MAXREAD claude -p --model $MODEL --permission-mode acceptEdits --append-system-prompt <preamble+brief>"
+  exit 0
+fi
+
+TMP="$(mktemp)"; trap 'rm -f "$TMP"' EXIT
+( cd "$DIR" && NULLIUS_MAX_READ="$MAXREAD" claude -p --model "$MODEL" \
+    --permission-mode acceptEdits --output-format json \
+    --append-system-prompt "$PREAMBLE" "$BRIEF" ) > "$TMP"
+
+# Surface the craftsman's report to the caller, then a cost line.
+jq -r '.result // "(no result text)"' "$TMP" 2>/dev/null || cat "$TMP"
+echo
+jq -r '"— nullius-build cost: $" + (((.total_cost_usd // 0)*100|round/100|tostring)) +
+  "  (" + ([(.modelUsage // {})|to_entries[]|(.key|sub("claude-";"")|sub("-20.*";"")) + " $" + (((.value.costUSD // 0)*100|round/100|tostring))]|join(", ")) + ")" +
+  "  turns=" + ((.num_turns // 0)|tostring) + (if .is_error then "  [ERROR: " + (.subtype // "unknown") + "]" else "" end)' "$TMP" 2>/dev/null || true

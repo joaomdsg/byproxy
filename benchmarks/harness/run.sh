@@ -36,6 +36,17 @@ TIMEOUT_S="${TIMEOUT_S:-3600}"
 PROMPT="$(cat "$TASK_DIR/prompt.md")"
 TASK_NAME="$(basename "$TASK_DIR")"
 
+# EXTRA_PROMPT_FILE: optional mandate suffix appended to the task prompt for
+# EVERY arm in the invocation — used by A/B designs that vary the mandate
+# (e.g. prevention-vs-compaction's full-familiarization clause) while keeping
+# it identical across arms. Set LABEL too, so rows stay distinguishable.
+if [[ -n "${EXTRA_PROMPT_FILE:-}" ]]; then
+  [[ -r "$EXTRA_PROMPT_FILE" ]] || { echo "EXTRA_PROMPT_FILE is set but not readable: $EXTRA_PROMPT_FILE" >&2; exit 3; }
+  PROMPT="$PROMPT
+
+$(cat "$EXTRA_PROMPT_FILE")"
+fi
+
 # Arm variants via env: ORCH_MODEL/ORCH_EFFORT pin the byproxy control
 # plane; PLAIN_MODEL/PLAIN_EFFORT pin the plain arm (plain claude, no guard
 # layer). LABEL names the variant in results (defaults to arm+model so
@@ -256,7 +267,7 @@ $PROMPT"
 {
   "hooks": {
     "PreToolUse": [
-      { "matcher": "Read|Grep|Glob|WebFetch|WebSearch|Bash|Edit|Write",
+      { "matcher": "Read|Grep|Glob|WebFetch|WebSearch|Bash|Edit|Write|Agent|Task|mcp__.*",
         "hooks": [ { "type": "command",
           "command": "node \"$CLAUDE_PROJECT_DIR/.claude/hooks/diet-governor.mjs\"" } ] }
     ]
@@ -338,6 +349,7 @@ $CC_SKILL_BODY")
     printf '%s' "$RUN_PROMPT" | timeout "$TIMEOUT_S" docker run --rm -i \
       --user "$(id -u):$(id -g)" \
       "${AUTH_ENV[@]}" -e HOME=/home/agent \
+      ${CLAUDE_CODE_AUTO_COMPACT_WINDOW:+-e CLAUDE_CODE_AUTO_COMPACT_WINDOW="$CLAUDE_CODE_AUTO_COMPACT_WINDOW"} \
       -e GOCACHE=/home/agent/.cache/go-build -e GOPATH=/home/agent/go \
       -v "$WT:/work" -w /work \
       -v "$CHOME:/home/agent" \
@@ -434,6 +446,10 @@ $CC_SKILL_BODY")
         then ((.cache_read / (.cache_read + .cache_write + .in)) * 1000 | round / 1000)
         else null end)}' <<<"$USAGE_BY_MODEL" 2>/dev/null || echo null)"
   jq -e . >/dev/null 2>&1 <<<"$CACHE_TOTALS" || CACHE_TOTALS='null'
+  # Auto-compact events in the stream (prevention-vs-compaction A/B): each
+  # compaction is a system message with subtype compact_boundary.
+  COMPACTIONS="$(grep -c '"subtype":[[:space:]]*"compact_boundary"' "$RAW" 2>/dev/null || true)"
+  COMPACTIONS="${COMPACTIONS:-0}"
 
   jq -n -c \
     --arg task "$TASK_NAME" --arg arm "$LABEL" --arg stamp "$STAMP" \
@@ -449,6 +465,8 @@ $CC_SKILL_BODY")
     --argjson craftsmen "${CRAFTSMAN_N:-0}" --argjson ccjudges "${CCJUDGE_N:-0}" \
     --argjson skillinv "${SKILL_N:-0}" \
     --argjson blind "$BLIND" \
+    --argjson compactions "${COMPACTIONS:-0}" \
+    --arg compactwin "${CLAUDE_CODE_AUTO_COMPACT_WINDOW:-}" \
     --arg raw "$(basename "$RAW")" \
     '{task:$task, arm:$arm, rep:$rep, stamp:$stamp, exit_code:$rc,
       wall_s:$wall, cost_usd:$cost, cost_by_model:$costmodel,
@@ -459,6 +477,7 @@ $CC_SKILL_BODY")
       auditor_dispatches:$auditors,
       craftsman_dispatches:$craftsmen, judge_dispatches:$ccjudges,
       score:$score, blind_disclosure:$blind,
+      compactions:$compactions, compact_window:(if $compactwin == "" then null else ($compactwin|(tonumber? // null)) end),
       diffstat:$diffstat, new_files:$untracked, raw:$raw}' \
     | tee -a "$JSONL"
 

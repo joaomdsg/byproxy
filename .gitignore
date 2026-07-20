@@ -1,3 +1,5 @@
 .claude/settings.local.json
 benchmarks/harness/results/
 pi-nullius/node_modules/
+.claude/scheduled_tasks.lock
+.claude/*.lock
