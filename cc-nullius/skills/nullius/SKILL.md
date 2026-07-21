@@ -274,6 +274,12 @@ agents absorb, hunt, build, verify — never decide.
    items never ratify by silence: they were blocked at the gap check,
    or they block the close now. An overrule re-enters the loop before
    the task is called done.
+   **Compact handoff**: if the ctx-sentinel fired this session (context
+   past the attention knee), end the report by handing the user the
+   line: `/compact preserve the close ledger (STATUS/FACTS/RISKS/
+   UNKNOWN/ASSUMED) verbatim; drop scout reports, file dumps and edit
+   churn`. Post-close is the one point compaction is near-lossless —
+   the ledger IS the summary. Never suggest compacting mid-hunt.
 
 ## Hygiene
 
