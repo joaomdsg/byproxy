@@ -1,0 +1,15 @@
+# Private: never commit the port SOURCE or a full reference impl.
+# The run harness MOUNTS the source at run time; the reference is a
+# build-time oracle generator. Only synthetic goldens + redacted contract
+# + generic skeleton/harness are push-safe.
+/source/
+/reference/
+# dotenv secret files (meta.env is task metadata and is NOT a dotenv file)
+.env
+.env.*
+
+# Build artifacts / run outputs
+/skeleton/agrialert
+/skeleton/seed/
+skeleton/**/*.test
+/runs/

@@ -1,0 +1,1392 @@
+{
+  "updated_at": "2026-07-20T06:00:00Z",
+  "day0_date": "2026-07-20",
+  "day1_date": "2026-07-21",
+  "day2_date": "2026-07-22",
+  "day3_date": "2026-07-23",
+  "day4_date": "2026-07-24",
+  "day5_date": "2026-07-25",
+  "day6_date": "2026-07-26",
+  "thi_data": {
+    "S004": {
+      "day0": {
+        "status_id": 3
+      },
+      "day1": {
+        "status_id": 2
+      },
+      "day2": {
+        "status_id": 3
+      },
+      "day3": {
+        "status_id": 2
+      },
+      "day4": {
+        "status_id": 3
+      },
+      "day5": {
+        "status_id": 2
+      },
+      "day6": {
+        "status_id": 3
+      }
+    },
+    "S008": {
+      "day0": {
+        "status_id": 3
+      },
+      "day1": {
+        "status_id": 2
+      },
+      "day2": {
+        "status_id": 3
+      },
+      "day3": {
+        "status_id": 2
+      },
+      "day4": {
+        "status_id": 3
+      },
+      "day5": {
+        "status_id": 2
+      },
+      "day6": {
+        "status_id": 3
+      }
+    },
+    "S012": {
+      "day0": {
+        "status_id": 3
+      },
+      "day1": {
+        "status_id": 2
+      },
+      "day2": {
+        "status_id": 3
+      },
+      "day3": {
+        "status_id": 2
+      },
+      "day4": {
+        "status_id": 3
+      },
+      "day5": {
+        "status_id": 2
+      },
+      "day6": {
+        "status_id": 3
+      }
+    },
+    "S016": {
+      "day0": {
+        "status_id": 3
+      },
+      "day1": {
+        "status_id": 2
+      },
+      "day2": {
+        "status_id": 3
+      },
+      "day3": {
+        "status_id": 2
+      },
+      "day4": {
+        "status_id": 3
+      },
+      "day5": {
+        "status_id": 2
+      },
+      "day6": {
+        "status_id": 3
+      }
+    },
+    "S020": {
+      "day0": {
+        "status_id": 3
+      },
+      "day1": {
+        "status_id": 2
+      },
+      "day2": {
+        "status_id": 3
+      },
+      "day3": {
+        "status_id": 2
+      },
+      "day4": {
+        "status_id": 3
+      },
+      "day5": {
+        "status_id": 2
+      },
+      "day6": {
+        "status_id": 3
+      }
+    },
+    "S024": {
+      "day0": {
+        "status_id": 3
+      },
+      "day1": {
+        "status_id": 2
+      },
+      "day2": {
+        "status_id": 3
+      },
+      "day3": {
+        "status_id": 2
+      },
+      "day4": {
+        "status_id": 3
+      },
+      "day5": {
+        "status_id": 2
+      },
+      "day6": {
+        "status_id": 3
+      }
+    },
+    "S028": {
+      "day0": {
+        "status_id": 3
+      },
+      "day1": {
+        "status_id": 2
+      },
+      "day2": {
+        "status_id": 3
+      },
+      "day3": {
+        "status_id": 2
+      },
+      "day4": {
+        "status_id": 3
+      },
+      "day5": {
+        "status_id": 2
+      },
+      "day6": {
+        "status_id": 3
+      }
+    },
+    "S032": {
+      "day0": {
+        "status_id": 3
+      },
+      "day1": {
+        "status_id": 2
+      },
+      "day2": {
+        "status_id": 3
+      },
+      "day3": {
+        "status_id": 2
+      },
+      "day4": {
+        "status_id": 3
+      },
+      "day5": {
+        "status_id": 2
+      },
+      "day6": {
+        "status_id": 3
+      }
+    },
+    "S036": {
+      "day0": {
+        "status_id": 3
+      },
+      "day1": {
+        "status_id": 2
+      },
+      "day2": {
+        "status_id": 3
+      },
+      "day3": {
+        "status_id": 2
+      },
+      "day4": {
+        "status_id": 3
+      },
+      "day5": {
+        "status_id": 2
+      },
+      "day6": {
+        "status_id": 3
+      }
+    },
+    "S040": {
+      "day0": {
+        "status_id": 3
+      },
+      "day1": {
+        "status_id": 2
+      },
+      "day2": {
+        "status_id": 3
+      },
+      "day3": {
+        "status_id": 2
+      },
+      "day4": {
+        "status_id": 3
+      },
+      "day5": {
+        "status_id": 2
+      },
+      "day6": {
+        "status_id": 3
+      }
+    },
+    "S044": {
+      "day0": {
+        "status_id": 3
+      },
+      "day1": {
+        "status_id": 2
+      },
+      "day2": {
+        "status_id": 3
+      },
+      "day3": {
+        "status_id": 2
+      },
+      "day4": {
+        "status_id": 3
+      },
+      "day5": {
+        "status_id": 2
+      },
+      "day6": {
+        "status_id": 3
+      }
+    },
+    "S048": {
+      "day0": {
+        "status_id": 3
+      },
+      "day1": {
+        "status_id": 2
+      },
+      "day2": {
+        "status_id": 3
+      },
+      "day3": {
+        "status_id": 2
+      },
+      "day4": {
+        "status_id": 3
+      },
+      "day5": {
+        "status_id": 2
+      },
+      "day6": {
+        "status_id": 3
+      }
+    },
+    "S052": {
+      "day0": {
+        "status_id": 3
+      },
+      "day1": {
+        "status_id": 2
+      },
+      "day2": {
+        "status_id": 3
+      },
+      "day3": {
+        "status_id": 2
+      },
+      "day4": {
+        "status_id": 3
+      },
+      "day5": {
+        "status_id": 2
+      },
+      "day6": {
+        "status_id": 3
+      }
+    },
+    "S056": {
+      "day0": {
+        "status_id": 3
+      },
+      "day1": {
+        "status_id": 2
+      },
+      "day2": {
+        "status_id": 3
+      },
+      "day3": {
+        "status_id": 2
+      },
+      "day4": {
+        "status_id": 3
+      },
+      "day5": {
+        "status_id": 2
+      },
+      "day6": {
+        "status_id": 3
+      }
+    },
+    "S060": {
+      "day0": {
+        "status_id": 3
+      },
+      "day1": {
+        "status_id": 2
+      },
+      "day2": {
+        "status_id": 3
+      },
+      "day3": {
+        "status_id": 2
+      },
+      "day4": {
+        "status_id": 3
+      },
+      "day5": {
+        "status_id": 2
+      },
+      "day6": {
+        "status_id": 3
+      }
+    },
+    "S064": {
+      "day0": {
+        "status_id": 3
+      },
+      "day1": {
+        "status_id": 2
+      },
+      "day2": {
+        "status_id": 3
+      },
+      "day3": {
+        "status_id": 2
+      },
+      "day4": {
+        "status_id": 3
+      },
+      "day5": {
+        "status_id": 2
+      },
+      "day6": {
+        "status_id": 3
+      }
+    },
+    "S068": {
+      "day0": {
+        "status_id": 3
+      },
+      "day1": {
+        "status_id": 2
+      },
+      "day2": {
+        "status_id": 3
+      },
+      "day3": {
+        "status_id": 2
+      },
+      "day4": {
+        "status_id": 3
+      },
+      "day5": {
+        "status_id": 2
+      },
+      "day6": {
+        "status_id": 3
+      }
+    },
+    "S072": {
+      "day0": {
+        "status_id": 3
+      },
+      "day1": {
+        "status_id": 2
+      },
+      "day2": {
+        "status_id": 3
+      },
+      "day3": {
+        "status_id": 2
+      },
+      "day4": {
+        "status_id": 3
+      },
+      "day5": {
+        "status_id": 2
+      },
+      "day6": {
+        "status_id": 3
+      }
+    },
+    "S076": {
+      "day0": {
+        "status_id": 3
+      },
+      "day1": {
+        "status_id": 2
+      },
+      "day2": {
+        "status_id": 3
+      },
+      "day3": {
+        "status_id": 2
+      },
+      "day4": {
+        "status_id": 3
+      },
+      "day5": {
+        "status_id": 2
+      },
+      "day6": {
+        "status_id": 3
+      }
+    },
+    "S080": {
+      "day0": {
+        "status_id": 3
+      },
+      "day1": {
+        "status_id": 2
+      },
+      "day2": {
+        "status_id": 3
+      },
+      "day3": {
+        "status_id": 2
+      },
+      "day4": {
+        "status_id": 3
+      },
+      "day5": {
+        "status_id": 2
+      },
+      "day6": {
+        "status_id": 3
+      }
+    },
+    "S084": {
+      "day0": {
+        "status_id": 3
+      },
+      "day1": {
+        "status_id": 2
+      },
+      "day2": {
+        "status_id": 3
+      },
+      "day3": {
+        "status_id": 2
+      },
+      "day4": {
+        "status_id": 3
+      },
+      "day5": {
+        "status_id": 2
+      },
+      "day6": {
+        "status_id": 3
+      }
+    },
+    "S088": {
+      "day0": {
+        "status_id": 3
+      },
+      "day1": {
+        "status_id": 2
+      },
+      "day2": {
+        "status_id": 3
+      },
+      "day3": {
+        "status_id": 2
+      },
+      "day4": {
+        "status_id": 3
+      },
+      "day5": {
+        "status_id": 2
+      },
+      "day6": {
+        "status_id": 3
+      }
+    },
+    "S092": {
+      "day0": {
+        "status_id": 3
+      },
+      "day1": {
+        "status_id": 2
+      },
+      "day2": {
+        "status_id": 3
+      },
+      "day3": {
+        "status_id": 2
+      },
+      "day4": {
+        "status_id": 3
+      },
+      "day5": {
+        "status_id": 2
+      },
+      "day6": {
+        "status_id": 3
+      }
+    },
+    "S096": {
+      "day0": {
+        "status_id": 3
+      },
+      "day1": {
+        "status_id": 2
+      },
+      "day2": {
+        "status_id": 3
+      },
+      "day3": {
+        "status_id": 2
+      },
+      "day4": {
+        "status_id": 3
+      },
+      "day5": {
+        "status_id": 2
+      },
+      "day6": {
+        "status_id": 3
+      }
+    },
+    "S100": {
+      "day0": {
+        "status_id": 3
+      },
+      "day1": {
+        "status_id": 2
+      },
+      "day2": {
+        "status_id": 3
+      },
+      "day3": {
+        "status_id": 2
+      },
+      "day4": {
+        "status_id": 3
+      },
+      "day5": {
+        "status_id": 2
+      },
+      "day6": {
+        "status_id": 3
+      }
+    },
+    "S104": {
+      "day0": {
+        "status_id": 3
+      },
+      "day1": {
+        "status_id": 2
+      },
+      "day2": {
+        "status_id": 3
+      },
+      "day3": {
+        "status_id": 2
+      },
+      "day4": {
+        "status_id": 3
+      },
+      "day5": {
+        "status_id": 2
+      },
+      "day6": {
+        "status_id": 3
+      }
+    },
+    "S108": {
+      "day0": {
+        "status_id": 3
+      },
+      "day1": {
+        "status_id": 2
+      },
+      "day2": {
+        "status_id": 3
+      },
+      "day3": {
+        "status_id": 2
+      },
+      "day4": {
+        "status_id": 3
+      },
+      "day5": {
+        "status_id": 2
+      },
+      "day6": {
+        "status_id": 3
+      }
+    },
+    "S112": {
+      "day0": {
+        "status_id": 3
+      },
+      "day1": {
+        "status_id": 2
+      },
+      "day2": {
+        "status_id": 3
+      },
+      "day3": {
+        "status_id": 2
+      },
+      "day4": {
+        "status_id": 3
+      },
+      "day5": {
+        "status_id": 2
+      },
+      "day6": {
+        "status_id": 3
+      }
+    },
+    "S116": {
+      "day0": {
+        "status_id": 3
+      },
+      "day1": {
+        "status_id": 2
+      },
+      "day2": {
+        "status_id": 3
+      },
+      "day3": {
+        "status_id": 2
+      },
+      "day4": {
+        "status_id": 3
+      },
+      "day5": {
+        "status_id": 2
+      },
+      "day6": {
+        "status_id": 3
+      }
+    },
+    "S120": {
+      "day0": {
+        "status_id": 3
+      },
+      "day1": {
+        "status_id": 2
+      },
+      "day2": {
+        "status_id": 3
+      },
+      "day3": {
+        "status_id": 2
+      },
+      "day4": {
+        "status_id": 3
+      },
+      "day5": {
+        "status_id": 2
+      },
+      "day6": {
+        "status_id": 3
+      }
+    },
+    "S124": {
+      "day0": {
+        "status_id": 3
+      },
+      "day1": {
+        "status_id": 2
+      },
+      "day2": {
+        "status_id": 3
+      },
+      "day3": {
+        "status_id": 2
+      },
+      "day4": {
+        "status_id": 3
+      },
+      "day5": {
+        "status_id": 2
+      },
+      "day6": {
+        "status_id": 3
+      }
+    },
+    "S128": {
+      "day0": {
+        "status_id": 3
+      },
+      "day1": {
+        "status_id": 2
+      },
+      "day2": {
+        "status_id": 3
+      },
+      "day3": {
+        "status_id": 2
+      },
+      "day4": {
+        "status_id": 3
+      },
+      "day5": {
+        "status_id": 2
+      },
+      "day6": {
+        "status_id": 3
+      }
+    },
+    "S132": {
+      "day0": {
+        "status_id": 3
+      },
+      "day1": {
+        "status_id": 2
+      },
+      "day2": {
+        "status_id": 3
+      },
+      "day3": {
+        "status_id": 2
+      },
+      "day4": {
+        "status_id": 3
+      },
+      "day5": {
+        "status_id": 2
+      },
+      "day6": {
+        "status_id": 3
+      }
+    },
+    "S136": {
+      "day0": {
+        "status_id": 3
+      },
+      "day1": {
+        "status_id": 2
+      },
+      "day2": {
+        "status_id": 3
+      },
+      "day3": {
+        "status_id": 2
+      },
+      "day4": {
+        "status_id": 3
+      },
+      "day5": {
+        "status_id": 2
+      },
+      "day6": {
+        "status_id": 3
+      }
+    },
+    "S140": {
+      "day0": {
+        "status_id": 3
+      },
+      "day1": {
+        "status_id": 2
+      },
+      "day2": {
+        "status_id": 3
+      },
+      "day3": {
+        "status_id": 2
+      },
+      "day4": {
+        "status_id": 3
+      },
+      "day5": {
+        "status_id": 2
+      },
+      "day6": {
+        "status_id": 3
+      }
+    },
+    "S144": {
+      "day0": {
+        "status_id": 3
+      },
+      "day1": {
+        "status_id": 2
+      },
+      "day2": {
+        "status_id": 3
+      },
+      "day3": {
+        "status_id": 2
+      },
+      "day4": {
+        "status_id": 3
+      },
+      "day5": {
+        "status_id": 2
+      },
+      "day6": {
+        "status_id": 3
+      }
+    },
+    "S148": {
+      "day0": {
+        "status_id": 3
+      },
+      "day1": {
+        "status_id": 2
+      },
+      "day2": {
+        "status_id": 3
+      },
+      "day3": {
+        "status_id": 2
+      },
+      "day4": {
+        "status_id": 3
+      },
+      "day5": {
+        "status_id": 2
+      },
+      "day6": {
+        "status_id": 3
+      }
+    },
+    "S152": {
+      "day0": {
+        "status_id": 3
+      },
+      "day1": {
+        "status_id": 2
+      },
+      "day2": {
+        "status_id": 3
+      },
+      "day3": {
+        "status_id": 2
+      },
+      "day4": {
+        "status_id": 3
+      },
+      "day5": {
+        "status_id": 2
+      },
+      "day6": {
+        "status_id": 3
+      }
+    },
+    "S156": {
+      "day0": {
+        "status_id": 3
+      },
+      "day1": {
+        "status_id": 2
+      },
+      "day2": {
+        "status_id": 3
+      },
+      "day3": {
+        "status_id": 2
+      },
+      "day4": {
+        "status_id": 3
+      },
+      "day5": {
+        "status_id": 2
+      },
+      "day6": {
+        "status_id": 3
+      }
+    },
+    "S160": {
+      "day0": {
+        "status_id": 3
+      },
+      "day1": {
+        "status_id": 2
+      },
+      "day2": {
+        "status_id": 3
+      },
+      "day3": {
+        "status_id": 2
+      },
+      "day4": {
+        "status_id": 3
+      },
+      "day5": {
+        "status_id": 2
+      },
+      "day6": {
+        "status_id": 3
+      }
+    },
+    "S164": {
+      "day0": {
+        "status_id": 3
+      },
+      "day1": {
+        "status_id": 2
+      },
+      "day2": {
+        "status_id": 3
+      },
+      "day3": {
+        "status_id": 2
+      },
+      "day4": {
+        "status_id": 3
+      },
+      "day5": {
+        "status_id": 2
+      },
+      "day6": {
+        "status_id": 3
+      }
+    },
+    "S168": {
+      "day0": {
+        "status_id": 3
+      },
+      "day1": {
+        "status_id": 2
+      },
+      "day2": {
+        "status_id": 3
+      },
+      "day3": {
+        "status_id": 2
+      },
+      "day4": {
+        "status_id": 3
+      },
+      "day5": {
+        "status_id": 2
+      },
+      "day6": {
+        "status_id": 3
+      }
+    },
+    "S172": {
+      "day0": {
+        "status_id": 3
+      },
+      "day1": {
+        "status_id": 2
+      },
+      "day2": {
+        "status_id": 3
+      },
+      "day3": {
+        "status_id": 2
+      },
+      "day4": {
+        "status_id": 3
+      },
+      "day5": {
+        "status_id": 2
+      },
+      "day6": {
+        "status_id": 3
+      }
+    },
+    "S176": {
+      "day0": {
+        "status_id": 3
+      },
+      "day1": {
+        "status_id": 2
+      },
+      "day2": {
+        "status_id": 3
+      },
+      "day3": {
+        "status_id": 2
+      },
+      "day4": {
+        "status_id": 3
+      },
+      "day5": {
+        "status_id": 2
+      },
+      "day6": {
+        "status_id": 3
+      }
+    },
+    "S180": {
+      "day0": {
+        "status_id": 3
+      },
+      "day1": {
+        "status_id": 2
+      },
+      "day2": {
+        "status_id": 3
+      },
+      "day3": {
+        "status_id": 2
+      },
+      "day4": {
+        "status_id": 3
+      },
+      "day5": {
+        "status_id": 2
+      },
+      "day6": {
+        "status_id": 3
+      }
+    },
+    "S184": {
+      "day0": {
+        "status_id": 3
+      },
+      "day1": {
+        "status_id": 2
+      },
+      "day2": {
+        "status_id": 3
+      },
+      "day3": {
+        "status_id": 2
+      },
+      "day4": {
+        "status_id": 3
+      },
+      "day5": {
+        "status_id": 2
+      },
+      "day6": {
+        "status_id": 3
+      }
+    },
+    "S188": {
+      "day0": {
+        "status_id": 3
+      },
+      "day1": {
+        "status_id": 2
+      },
+      "day2": {
+        "status_id": 3
+      },
+      "day3": {
+        "status_id": 2
+      },
+      "day4": {
+        "status_id": 3
+      },
+      "day5": {
+        "status_id": 2
+      },
+      "day6": {
+        "status_id": 3
+      }
+    },
+    "S192": {
+      "day0": {
+        "status_id": 3
+      },
+      "day1": {
+        "status_id": 2
+      },
+      "day2": {
+        "status_id": 3
+      },
+      "day3": {
+        "status_id": 2
+      },
+      "day4": {
+        "status_id": 3
+      },
+      "day5": {
+        "status_id": 2
+      },
+      "day6": {
+        "status_id": 3
+      }
+    },
+    "S196": {
+      "day0": {
+        "status_id": 3
+      },
+      "day1": {
+        "status_id": 2
+      },
+      "day2": {
+        "status_id": 3
+      },
+      "day3": {
+        "status_id": 2
+      },
+      "day4": {
+        "status_id": 3
+      },
+      "day5": {
+        "status_id": 2
+      },
+      "day6": {
+        "status_id": 3
+      }
+    },
+    "S200": {
+      "day0": {
+        "status_id": 3
+      },
+      "day1": {
+        "status_id": 2
+      },
+      "day2": {
+        "status_id": 3
+      },
+      "day3": {
+        "status_id": 2
+      },
+      "day4": {
+        "status_id": 3
+      },
+      "day5": {
+        "status_id": 2
+      },
+      "day6": {
+        "status_id": 3
+      }
+    },
+    "S204": {
+      "day0": {
+        "status_id": 3
+      },
+      "day1": {
+        "status_id": 2
+      },
+      "day2": {
+        "status_id": 3
+      },
+      "day3": {
+        "status_id": 2
+      },
+      "day4": {
+        "status_id": 3
+      },
+      "day5": {
+        "status_id": 2
+      },
+      "day6": {
+        "status_id": 3
+      }
+    },
+    "S208": {
+      "day0": {
+        "status_id": 3
+      },
+      "day1": {
+        "status_id": 2
+      },
+      "day2": {
+        "status_id": 3
+      },
+      "day3": {
+        "status_id": 2
+      },
+      "day4": {
+        "status_id": 3
+      },
+      "day5": {
+        "status_id": 2
+      },
+      "day6": {
+        "status_id": 3
+      }
+    },
+    "S212": {
+      "day0": {
+        "status_id": 3
+      },
+      "day1": {
+        "status_id": 2
+      },
+      "day2": {
+        "status_id": 3
+      },
+      "day3": {
+        "status_id": 2
+      },
+      "day4": {
+        "status_id": 3
+      },
+      "day5": {
+        "status_id": 2
+      },
+      "day6": {
+        "status_id": 3
+      }
+    },
+    "S216": {
+      "day0": {
+        "status_id": 3
+      },
+      "day1": {
+        "status_id": 2
+      },
+      "day2": {
+        "status_id": 3
+      },
+      "day3": {
+        "status_id": 2
+      },
+      "day4": {
+        "status_id": 3
+      },
+      "day5": {
+        "status_id": 2
+      },
+      "day6": {
+        "status_id": 3
+      }
+    },
+    "S220": {
+      "day0": {
+        "status_id": 3
+      },
+      "day1": {
+        "status_id": 2
+      },
+      "day2": {
+        "status_id": 3
+      },
+      "day3": {
+        "status_id": 2
+      },
+      "day4": {
+        "status_id": 3
+      },
+      "day5": {
+        "status_id": 2
+      },
+      "day6": {
+        "status_id": 3
+      }
+    },
+    "S224": {
+      "day0": {
+        "status_id": 3
+      },
+      "day1": {
+        "status_id": 2
+      },
+      "day2": {
+        "status_id": 3
+      },
+      "day3": {
+        "status_id": 2
+      },
+      "day4": {
+        "status_id": 3
+      },
+      "day5": {
+        "status_id": 2
+      },
+      "day6": {
+        "status_id": 3
+      }
+    },
+    "S228": {
+      "day0": {
+        "status_id": 3
+      },
+      "day1": {
+        "status_id": 2
+      },
+      "day2": {
+        "status_id": 3
+      },
+      "day3": {
+        "status_id": 2
+      },
+      "day4": {
+        "status_id": 3
+      },
+      "day5": {
+        "status_id": 2
+      },
+      "day6": {
+        "status_id": 3
+      }
+    },
+    "S232": {
+      "day0": {
+        "status_id": 3
+      },
+      "day1": {
+        "status_id": 2
+      },
+      "day2": {
+        "status_id": 3
+      },
+      "day3": {
+        "status_id": 2
+      },
+      "day4": {
+        "status_id": 3
+      },
+      "day5": {
+        "status_id": 2
+      },
+      "day6": {
+        "status_id": 3
+      }
+    },
+    "S236": {
+      "day0": {
+        "status_id": 3
+      },
+      "day1": {
+        "status_id": 2
+      },
+      "day2": {
+        "status_id": 3
+      },
+      "day3": {
+        "status_id": 2
+      },
+      "day4": {
+        "status_id": 3
+      },
+      "day5": {
+        "status_id": 2
+      },
+      "day6": {
+        "status_id": 3
+      }
+    },
+    "S240": {
+      "day0": {
+        "status_id": 3
+      },
+      "day1": {
+        "status_id": 2
+      },
+      "day2": {
+        "status_id": 3
+      },
+      "day3": {
+        "status_id": 2
+      },
+      "day4": {
+        "status_id": 3
+      },
+      "day5": {
+        "status_id": 2
+      },
+      "day6": {
+        "status_id": 3
+      }
+    }
+  }
+}

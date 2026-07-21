@@ -24,6 +24,7 @@ behind them.
 | 6 | 2026-07-10 | [v4 guard layer on fable, cost attribution, rigor audit](2026-07-10-v4-fable-cost-and-rigor.md) |
 | 7 | 2026-07-13 | [the sonnet control plane refuted twice, and fable-lean found](2026-07-13-sonnet-refuted-fable-lean.md) |
 | 8 | 2026-07-14 | [the effort ladder, and craft parity once the judge can see the tests](2026-07-14-effort-ladder-craft-parity.md) |
+| 9 | 2026-07-21 | [the scale discriminator — a large SPA→Via port, three ways](2026-07-21-agri-scale-discriminator.md) |
 
 Later work (the cc-nullius plugin, the terrain gate, prevention-vs-
 compaction, the delegation-crossover economics, and the recursive

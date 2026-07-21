@@ -22,18 +22,40 @@
 # itself. The nested session absorbs the specifics through haiku scouts.
 set -euo pipefail
 
+# The nested `claude -p` is a fresh subprocess, and the calling session's Bash
+# tool strips auth env vars — so headless/container callers start logged-out
+# (measured: "Not logged in", 2026-07-20). Re-hydrate the credential from a
+# chmod-600 file by reference; interactive hosts with a normal `claude` login
+# never need this.
+if [[ -z "${CLAUDE_CODE_OAUTH_TOKEN:-}" ]]; then
+  for _tf in "${NULLIUS_CLAUDE_CODE_OAUTH_TOKEN_FILE:-}" "$HOME/.nullius-token"; do
+    [[ -n "$_tf" && -r "$_tf" ]] && { export CLAUDE_CODE_OAUTH_TOKEN="$(< "$_tf")"; break; }
+  done
+fi
+
 MODEL="${NULLIUS_BUILD_MODEL:-claude-sonnet-5}"
+EFFORT="${NULLIUS_EFFORT:-}"
 MAXREAD="${NULLIUS_MAX_READ:-80}"
+# Nested-session permission mode. Default acceptEdits is right for an
+# interactive host (auto-accepts edits, still gates other actions). Headless
+# containers need bypassPermissions so the nested craftsman's scouts can run
+# builds/tests unattended — set NULLIUS_PERMISSION_MODE=bypassPermissions.
+PERMMODE="${NULLIUS_PERMISSION_MODE:-acceptEdits}"
 DRY=0
 args=()
 while [[ $# -gt 0 ]]; do
   case "$1" in
     --model) MODEL="$2"; shift 2;;
+    --effort) EFFORT="$2"; shift 2;;
+    --permission-mode) PERMMODE="$2"; shift 2;;
     --max-read) MAXREAD="$2"; shift 2;;
     --dry-run) DRY=1; shift;;
     *) args+=("$1"); shift;;
   esac
 done
+# --effort is optional; only pass it through when set (empty = CLI default).
+EFFORT_ARGS=()
+[[ -n "$EFFORT" ]] && EFFORT_ARGS=(--effort "$EFFORT")
 [[ ${#args[@]} -ge 1 ]] || { echo "usage: nullius-build \"<brief>\" [dir]  (or @file, or - for stdin)" >&2; exit 2; }
 
 RAW="${args[0]}"
@@ -43,25 +65,81 @@ elif [[ "$RAW" == @* ]]; then BRIEF="$(cat "${RAW#@}")"
 else BRIEF="$RAW"; fi
 [[ -d "$DIR" ]] || { echo "nullius-build: not a directory: $DIR" >&2; exit 2; }
 
-PREAMBLE="You are a nullius CRAFTSMAN — a nested, delegated build session. The calling agent has already done the high-level reasoning and hands you the lean brief that follows; do NOT re-derive it and do NOT re-read the whole codebase yourself. Absorb every code specific you need (types, signatures, surrounding logic, existing helpers) through nullius-scout (haiku) dispatches, batched in parallel — never whole-read the repo on your own thread; the diet governor will steer you. Build test-first where behavior is testable. Close with a scout record: build + the project's checks, and the exported-surface diff. Headless run, no user: never ask questions — make the call and record it under ASSUMED. Report STATUS/FACTS/RISKS/UNKNOWN/ASSUMED. The caller's lean brief follows as your prompt."
+PREAMBLE="You are a nullius CRAFTSMAN — a nested, delegated build session. The calling agent has already done the high-level reasoning and hands you the lean brief that follows; do NOT re-derive it and do NOT re-read the whole codebase yourself. Absorb every code specific you need (types, signatures, surrounding logic, existing helpers) through nullius-scout (haiku) dispatches, batched in parallel — never whole-read the repo on your own thread; the diet governor will steer you. Build test-first where behavior is testable. THE SOURCE IS THE SOURCE OF TRUTH, NOT THE BRIEF: the brief is a lossy summary — intent, the verbatim target CONTRACT (your only source for the target API), and a TERRAIN pointer-map of what to port. For all DEPTH, go to the pointed-at source yourself (via scouts) and resolve it there; never let the brief's phrasing decide how much to implement. DEPTH RULE, non-negotiable: implement every hotspot for REAL; STUB or TODO an item ONLY when you have confirmed it depends on something genuinely unreachable in this environment (an external service that won't resolve, a real DB/infra with no credentials) — a stub with no such named, verified blocker is a DEFECT, not a shortcut. If the brief itself pre-marks something stub/TODO, treat that as a DEFAULT you override the same way: scout the source, and if it's self-contained, build it and record the override under ASSUMED. (Some briefs, when the source is not reachable from here, carry a fuller HOTSPOT LEDGER of pointers-plus-defaults — same rule: verify each against whatever source you can reach, never obey a verdict blindly.) Close with a scout record: a FROM-CLEAN build + the project's checks (the scout run is the record — never your own 'it compiles'), the exported-surface diff, and an explicit flag of any empty/0-byte file or missing package declaration (a blank file is a broken build, not a stub). Headless run, no user: never ask questions — make the call and record it under ASSUMED. Report STATUS/FACTS/RISKS/UNKNOWN/ASSUMED. The caller's lean brief follows as your prompt."
 
 if [[ "$DRY" == "1" ]]; then
   echo "dir:       $DIR"
   echo "model:     $MODEL"
+  echo "effort:    ${EFFORT:-(cli default)}"
   echo "max-read:  $MAXREAD"
   echo "brief:     ${BRIEF:0:200}$([[ ${#BRIEF} -gt 200 ]] && echo ' …')"
-  echo "command:   NULLIUS_MAX_READ=$MAXREAD claude -p --model $MODEL --permission-mode acceptEdits --append-system-prompt <preamble+brief>"
+  echo "perm-mode: $PERMMODE"
+  echo "command:   NULLIUS_MAX_READ=$MAXREAD claude -p --model $MODEL ${EFFORT:+--effort $EFFORT} --permission-mode $PERMMODE --append-system-prompt <preamble+brief>"
   exit 0
 fi
 
 TMP="$(mktemp)"; trap 'rm -f "$TMP"' EXIT
-( cd "$DIR" && NULLIUS_MAX_READ="$MAXREAD" claude -p --model "$MODEL" \
-    --permission-mode acceptEdits --output-format json \
+set +e
+( cd "$DIR" && NULLIUS_MAX_READ="$MAXREAD" claude -p --model "$MODEL" "${EFFORT_ARGS[@]}" \
+    --permission-mode "$PERMMODE" --output-format json \
     --append-system-prompt "$PREAMBLE" "$BRIEF" ) > "$TMP"
+run_rc=$?
+set -e
 
-# Surface the craftsman's report to the caller, then a cost line.
-jq -r '.result // "(no result text)"' "$TMP" 2>/dev/null || cat "$TMP"
+# The cost line — always informative, even on failure.
+costline() {
+  jq -r '"— nullius-build cost: $" + (((.total_cost_usd // 0)*100|round/100|tostring)) +
+    "  (" + ([(.modelUsage // {})|to_entries[]|(.key|sub("claude-";"")|sub("-20.*";"")) + " $" + (((.value.costUSD // 0)*100|round/100|tostring))]|join(", ")) + ")" +
+    "  turns=" + ((.num_turns // 0)|tostring)' "$TMP" 2>/dev/null || true
+}
+
+# The nested `claude -p` can exit 0 yet hand back a FAILURE envelope
+# (is_error:true carrying subtype "success" — measured on a 429 monthly
+# spend-limit hit, 2026-07-20). Never trust the exit code or .subtype: parse
+# the envelope and classify. A limit-killed run must reach the caller as a
+# distinct nonzero exit with the error on STDERR — never as .result text on
+# stdout, or the leader/scorer mistakes the limit sentence for a build report.
+# `claude -p --output-format json` does NOT always hand back a lone clean JSON
+# object: under context compaction it emits a notice around the result envelope
+# — as a separate non-JSON line OR inline on the same line as the object (both
+# shapes measured 2026-07-20 on the port-todo runs; a line-anchored match missed
+# the inline case and wrongly reported a green build as "no valid JSON"). So
+# extract the result object as a SUBSTRING, tolerant of any surrounding noise:
+# pull the last `{"type":"result"…}` occurrence, then normalize TMP to just it.
+ENV="$(grep -aoE '\{"type":"result".*\}' "$TMP" | tail -n1)"
+[[ -z "$ENV" ]] && ENV="$(grep -aoE '\{.*"is_error".*\}' "$TMP" | tail -n1)"  # older/reordered envelopes
+if [[ -n "$ENV" ]] && printf '%s' "$ENV" | jq -e 'has("is_error")' >/dev/null 2>&1; then
+  printf '%s\n' "$ENV" > "$TMP"
+elif ! jq -e 'has("is_error")' >/dev/null 2>&1 < "$TMP"; then   # last resort: whole file
+  echo "nullius-build: nested session produced no valid JSON (claude -p exit $run_rc)." >&2
+  [[ -s "$TMP" ]] && { echo "--- raw output (first 20 lines) ---" >&2; sed -n '1,20p' "$TMP" >&2; }
+  exit 1
+fi
+
+is_error=$(jq -r '.is_error // false' "$TMP")
+term=$(jq -r '.terminal_reason // ""' "$TMP")
+astatus=$(jq -r '.api_error_status // ""' "$TMP")
+resulttext=$(jq -r '.result // ""' "$TMP")
+
+if [[ "$is_error" == "true" ]]; then
+  # Limit / transient API failures are RETRYABLE and must stay distinguishable
+  # from a build that failed on its merits — the caller re-runs the arm once the
+  # window clears rather than scoring a dead run.
+  if [[ "$astatus" == "429" || "$term" == "api_error" ]] \
+     || printf '%s' "$resulttext" | grep -qiE 'usage limit|spend limit|rate limit'; then
+    echo "nullius-build: BUILD ABORTED — usage/spend limit or transient API failure; NOT a build report." >&2
+    echo "  terminal_reason=${term:-?} api_error_status=${astatus:-?}" >&2
+    echo "  message: $resulttext" >&2
+    costline >&2
+    exit 75   # EX_TEMPFAIL — retry once the limit window clears
+  fi
+  echo "nullius-build: BUILD FAILED — nested session ended in error (terminal_reason=${term:-?})." >&2
+  echo "  message: $resulttext" >&2
+  costline >&2
+  exit 1
+fi
+
+# Success: surface the craftsman's report to the caller, then the cost line.
+printf '%s\n' "${resulttext:-(no result text)}"
 echo
-jq -r '"— nullius-build cost: $" + (((.total_cost_usd // 0)*100|round/100|tostring)) +
-  "  (" + ([(.modelUsage // {})|to_entries[]|(.key|sub("claude-";"")|sub("-20.*";"")) + " $" + (((.value.costUSD // 0)*100|round/100|tostring))]|join(", ")) + ")" +
-  "  turns=" + ((.num_turns // 0)|tostring) + (if .is_error then "  [ERROR: " + (.subtype // "unknown") + "]" else "" end)' "$TMP" 2>/dev/null || true
+costline

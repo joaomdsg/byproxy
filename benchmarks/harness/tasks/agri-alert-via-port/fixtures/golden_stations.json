@@ -1,0 +1,156 @@
+{
+  "stations": [
+    {
+      "station_id": "ST001",
+      "place": "Field Site 01",
+      "status": "active"
+    },
+    {
+      "station_id": "ST002",
+      "place": "Field Site 02",
+      "status": "inactive"
+    },
+    {
+      "station_id": "ST003",
+      "place": "Field Site 03",
+      "status": "needs_maintenance"
+    },
+    {
+      "station_id": "ST004",
+      "place": "Field Site 04",
+      "status": "active"
+    },
+    {
+      "station_id": "ST005",
+      "place": "Field Site 05",
+      "status": "inactive"
+    },
+    {
+      "station_id": "ST006",
+      "place": "Field Site 06",
+      "status": "needs_maintenance"
+    },
+    {
+      "station_id": "ST007",
+      "place": "Field Site 07",
+      "status": "active"
+    },
+    {
+      "station_id": "ST008",
+      "place": "Field Site 08",
+      "status": "inactive"
+    },
+    {
+      "station_id": "ST009",
+      "place": "Field Site 09",
+      "status": "needs_maintenance"
+    },
+    {
+      "station_id": "ST010",
+      "place": "Field Site 10",
+      "status": "active"
+    },
+    {
+      "station_id": "ST011",
+      "place": "Field Site 11",
+      "status": "inactive"
+    },
+    {
+      "station_id": "ST012",
+      "place": "Field Site 12",
+      "status": "needs_maintenance"
+    },
+    {
+      "station_id": "ST013",
+      "place": "Field Site 13",
+      "status": "active"
+    },
+    {
+      "station_id": "ST014",
+      "place": "Field Site 14",
+      "status": "inactive"
+    },
+    {
+      "station_id": "ST015",
+      "place": "Field Site 15",
+      "status": "needs_maintenance"
+    },
+    {
+      "station_id": "ST016",
+      "place": "Field Site 16",
+      "status": "active"
+    },
+    {
+      "station_id": "ST017",
+      "place": "Field Site 17",
+      "status": "inactive"
+    },
+    {
+      "station_id": "ST018",
+      "place": "Field Site 18",
+      "status": "needs_maintenance"
+    },
+    {
+      "station_id": "ST019",
+      "place": "Field Site 19",
+      "status": "active"
+    },
+    {
+      "station_id": "ST020",
+      "place": "Field Site 20",
+      "status": "inactive"
+    },
+    {
+      "station_id": "ST021",
+      "place": "Field Site 21",
+      "status": "needs_maintenance"
+    },
+    {
+      "station_id": "ST022",
+      "place": "Field Site 22",
+      "status": "active"
+    },
+    {
+      "station_id": "ST023",
+      "place": "Field Site 23",
+      "status": "inactive"
+    },
+    {
+      "station_id": "ST024",
+      "place": "Field Site 24",
+      "status": "needs_maintenance"
+    },
+    {
+      "station_id": "ST025",
+      "place": "Field Site 25",
+      "status": "active"
+    },
+    {
+      "station_id": "ST026",
+      "place": "Field Site 26",
+      "status": "inactive"
+    },
+    {
+      "station_id": "ST027",
+      "place": "Field Site 27",
+      "status": "needs_maintenance"
+    },
+    {
+      "station_id": "ST028",
+      "place": "Field Site 28",
+      "status": "active"
+    },
+    {
+      "station_id": "ST029",
+      "place": "Field Site 29",
+      "status": "inactive"
+    },
+    {
+      "station_id": "ST030",
+      "place": "Field Site 30",
+      "status": "needs_maintenance"
+    }
+  ],
+  "count": 30,
+  "page_size": 15
+}

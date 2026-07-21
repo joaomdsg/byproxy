@@ -1,0 +1,214 @@
+{
+  "data": [
+    {
+      "station_id": "ST001",
+      "timestamp": "2026-07-20T05:00:00Z",
+      "bat_volt": 2.9,
+      "longitude_deg": -7.99,
+      "latitude_deg": 40.01
+    },
+    {
+      "station_id": "ST002",
+      "timestamp": "2026-07-20T05:00:00Z",
+      "bat_volt": 2.81,
+      "longitude_deg": -7.98,
+      "latitude_deg": 40.02
+    },
+    {
+      "station_id": "ST003",
+      "timestamp": "2026-07-20T05:00:00Z",
+      "bat_volt": 2.72,
+      "longitude_deg": -7.97,
+      "latitude_deg": 40.03
+    },
+    {
+      "station_id": "ST004",
+      "timestamp": "2026-07-20T05:00:00Z",
+      "bat_volt": 2.63,
+      "longitude_deg": -7.96,
+      "latitude_deg": 40.04
+    },
+    {
+      "station_id": "ST005",
+      "timestamp": "2026-07-20T05:00:00Z",
+      "bat_volt": 2.54,
+      "longitude_deg": -7.95,
+      "latitude_deg": 40.05
+    },
+    {
+      "station_id": "ST006",
+      "timestamp": "2026-07-20T05:00:00Z",
+      "bat_volt": 2.45,
+      "longitude_deg": -7.94,
+      "latitude_deg": 40.06
+    },
+    {
+      "station_id": "ST007",
+      "timestamp": "2026-07-20T05:00:00Z",
+      "bat_volt": 2.36,
+      "longitude_deg": -7.93,
+      "latitude_deg": 40.07
+    },
+    {
+      "station_id": "ST008",
+      "timestamp": "2026-07-20T05:00:00Z",
+      "bat_volt": 2.27,
+      "longitude_deg": -7.92,
+      "latitude_deg": 40.08
+    },
+    {
+      "station_id": "ST009",
+      "timestamp": "2026-07-20T05:00:00Z",
+      "bat_volt": 2.18,
+      "longitude_deg": -7.91,
+      "latitude_deg": 40.09
+    },
+    {
+      "station_id": "ST010",
+      "timestamp": "2026-07-20T05:00:00Z",
+      "bat_volt": 2.09,
+      "longitude_deg": -7.9,
+      "latitude_deg": 40.1
+    },
+    {
+      "station_id": "ST011",
+      "timestamp": "2026-07-20T05:00:00Z",
+      "bat_volt": 2.9,
+      "longitude_deg": -7.89,
+      "latitude_deg": 40.11
+    },
+    {
+      "station_id": "ST012",
+      "timestamp": "2026-07-20T05:00:00Z",
+      "bat_volt": 2.81,
+      "longitude_deg": -7.88,
+      "latitude_deg": 40.0
+    },
+    {
+      "station_id": "ST013",
+      "timestamp": "2026-07-20T05:00:00Z",
+      "bat_volt": 2.72,
+      "longitude_deg": -7.87,
+      "latitude_deg": 40.01
+    },
+    {
+      "station_id": "ST014",
+      "timestamp": "2026-07-20T05:00:00Z",
+      "bat_volt": 2.63,
+      "longitude_deg": -7.86,
+      "latitude_deg": 40.02
+    },
+    {
+      "station_id": "ST015",
+      "timestamp": "2026-07-20T05:00:00Z",
+      "bat_volt": 2.54,
+      "longitude_deg": -7.85,
+      "latitude_deg": 40.03
+    },
+    {
+      "station_id": "ST016",
+      "timestamp": "2026-07-20T05:00:00Z",
+      "bat_volt": 2.45,
+      "longitude_deg": -7.84,
+      "latitude_deg": 40.04
+    },
+    {
+      "station_id": "ST017",
+      "timestamp": "2026-07-20T05:00:00Z",
+      "bat_volt": 2.36,
+      "longitude_deg": -7.83,
+      "latitude_deg": 40.05
+    },
+    {
+      "station_id": "ST018",
+      "timestamp": "2026-07-20T05:00:00Z",
+      "bat_volt": 2.27,
+      "longitude_deg": -7.82,
+      "latitude_deg": 40.06
+    },
+    {
+      "station_id": "ST019",
+      "timestamp": "2026-07-20T05:00:00Z",
+      "bat_volt": 2.18,
+      "longitude_deg": -7.81,
+      "latitude_deg": 40.07
+    },
+    {
+      "station_id": "ST020",
+      "timestamp": "2026-07-20T05:00:00Z",
+      "bat_volt": 2.09,
+      "longitude_deg": -8.0,
+      "latitude_deg": 40.08
+    },
+    {
+      "station_id": "ST021",
+      "timestamp": "2026-07-20T05:00:00Z",
+      "bat_volt": 2.9,
+      "longitude_deg": -7.99,
+      "latitude_deg": 40.09
+    },
+    {
+      "station_id": "ST022",
+      "timestamp": "2026-07-20T05:00:00Z",
+      "bat_volt": 2.81,
+      "longitude_deg": -7.98,
+      "latitude_deg": 40.1
+    },
+    {
+      "station_id": "ST023",
+      "timestamp": "2026-07-20T05:00:00Z",
+      "bat_volt": 2.72,
+      "longitude_deg": -7.97,
+      "latitude_deg": 40.11
+    },
+    {
+      "station_id": "ST024",
+      "timestamp": "2026-07-20T05:00:00Z",
+      "bat_volt": 2.63,
+      "longitude_deg": -7.96,
+      "latitude_deg": 40.0
+    },
+    {
+      "station_id": "ST025",
+      "timestamp": "2026-07-20T05:00:00Z",
+      "bat_volt": 2.54,
+      "longitude_deg": -7.95,
+      "latitude_deg": 40.01
+    },
+    {
+      "station_id": "ST026",
+      "timestamp": "2026-07-20T05:00:00Z",
+      "bat_volt": 2.45,
+      "longitude_deg": -7.94,
+      "latitude_deg": 40.02
+    },
+    {
+      "station_id": "ST027",
+      "timestamp": "2026-07-20T05:00:00Z",
+      "bat_volt": 2.36,
+      "longitude_deg": -7.93,
+      "latitude_deg": 40.03
+    },
+    {
+      "station_id": "ST028",
+      "timestamp": "2026-07-20T05:00:00Z",
+      "bat_volt": 2.27,
+      "longitude_deg": -7.92,
+      "latitude_deg": 40.04
+    },
+    {
+      "station_id": "ST029",
+      "timestamp": "2026-07-20T05:00:00Z",
+      "bat_volt": 2.18,
+      "longitude_deg": -7.91,
+      "latitude_deg": 40.05
+    },
+    {
+      "station_id": "ST030",
+      "timestamp": "2026-07-20T05:00:00Z",
+      "bat_volt": 2.09,
+      "longitude_deg": -7.9,
+      "latitude_deg": 40.06
+    }
+  ]
+}

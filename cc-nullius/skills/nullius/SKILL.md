@@ -39,19 +39,50 @@ are the methodology — obey the steering reason, never fight it.
   ~$26/M vs sonnet $15/M — so the ~$0.4 cold-absorption tax dominates
   until the build is very large. Published consensus agrees: delegated
   reading is the win, delegated writing is the tax.)
-  **When you do delegate a large build, prefer `nullius-build` (a Bash
-  command) over a plain craftsman subagent** — it runs the build in a
-  NESTED nullius session (sonnet + its own haiku scouts), so the bulk
-  absorption happens in throwaway haiku contexts and never enters your
-  thread OR the craftsman's. Measured on a 154k-token codebase port:
-  the nested-nullius build finished at $5.54 while a plain cold sonnet
-  doing the same timed out at $17.19 — 3.1x cheaper, because the
-  craftsman's own context stayed ~5x leaner. This is the recursion a
-  subagent can't do (subagents can't spawn subagents). Hand it a LEAN
-  brief (intent + contract + pointers to the code to absorb, never the
-  code itself) and let it scout the specifics: `nullius-build "<brief>"
-  <dir>`. Its payoff scales with how much code must be understood —
-  neutral on small changes, decisive on large-absorption builds.
+  **When a build is too big to hold in one context, delegate it to
+  `nullius-build` (a Bash command) rather than a plain craftsman
+  subagent** — it runs the build in a NESTED nullius session (its own
+  haiku scouts), so the bulk absorption happens in throwaway contexts
+  and never enters your thread OR the craftsman's. This is the recursion
+  a subagent can't do (subagents can't spawn subagents). **Recursion is
+  a SCALE tool, not a cost win** — measured true A/B (2026-07-20, same
+  mandate, fable leader): the nested build cost MORE than a solo run
+  ($13.46 vs $11.33), and its worth was elsewhere — it completes builds
+  a single context can't, and its mandatory scout-verified close-out
+  shipped an actually-clean deliverable where the solo run shipped a
+  broken build under a false "compiling" self-report. (The old "3.1x
+  cheaper" figure was a fallback artifact — a run where recursion never
+  actually engaged; do not cite it.)
+  **Pass POINTERS, not compressed depth — the source is the source of
+  truth, not your brief.** The measured failure was value-passing: a
+  leader compressed reachable code (`reference/`, right there in the
+  builder's tree) into prose verdicts — "stub grid / stub SMS / stub map"
+  — and the reference-blind builder obeyed a summary it couldn't check,
+  shipping a worse port than a solo run under the same mandate. The
+  prior art converges (Anthropic: workers do their own retrieval; Manus:
+  filesystem-as-memory, lazy fetch; A2A: pass a contextId, worker
+  fetches; Cognition: share context, don't compress it): when the source
+  is reachable by the builder, DON'T summarize it — the builder resolves
+  depth by scouting the actual code on demand, and your brief carries no
+  depth verdicts at all. So the brief is THIN:
+  (1) INTENT + the acceptance bar; (2) CONTRACT verbatim (the target API/
+  framework — the builder can't see your prompt, this is its only source
+  for it); (3) TERRAIN — a `file:line` pointer-map of what to port, never
+  pasted code and never a build-vs-stub call. That is the whole brief;
+  the builder reads the pointed-at source itself for all depth.
+  **Two rules survive regardless** (both are what the failure and the
+  literature agree on): (a) an explicit DEPTH RULE — *"implement every
+  hotspot for real; STUB only what depends on something genuinely
+  unreachable in the build env (external service, real infra/DB)"* —
+  because agents mis-judge effort without a rule (Anthropic); (b) the
+  close-out is scout-verified, never self-reported. When the source is
+  NOT reachable by the builder (not mounted, a different repo, an
+  external system), THEN fall back to the fuller HANDOFF CONTRACT
+  (`template/nullius-build-brief.md`) — its HOTSPOT LEDGER passes the
+  unreachable specifics as pointers-plus-defaults the builder verifies,
+  never as verdicts it can't. `nullius-build @brief.md <dir>`. Payoff
+  scales with absorption size — neutral on small changes, decisive when a
+  build exceeds one context.
 There is no judge tier: verification is absorption, so the close-out is a
 scout dispatch; every ruling on what it reports is yours.
 
@@ -200,7 +231,12 @@ agents absorb, hunt, build, verify — never decide.
 6. **Close: ONE scout dispatch** — full suite + vet + the project's
    linters (verbatim record, -race where concurrency was touched) AND the
    surface diff: `git diff` against base, every removed/changed
-   exported/public symbol listed verbatim. Each such symbol must be a
+   exported/public symbol listed verbatim. The build runs from CLEAN and
+   is the record — a self-report of "compiling / smoke-tested" is never
+   accepted (measured: a run shipped a 0-byte source file and self-reported
+   green — the build never actually ran). The close-out scout explicitly
+   flags any empty/0-byte source file or missing package declaration; a
+   file that exists but is blank is a broken build, not a stub. Each such symbol must be a
    decision you name; any other is a regression even with green tests
    (measured: green-DoD run scored zero). You rule on the record —
    failures and unexplained surface changes go back into the loop, never

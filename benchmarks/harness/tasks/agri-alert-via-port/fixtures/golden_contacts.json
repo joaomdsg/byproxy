@@ -1,0 +1,341 @@
+{
+  "contacts": [
+    {
+      "id": 1,
+      "reference": "C1001",
+      "name": "Sam Nguyen",
+      "phone_number": "900111111",
+      "active": true,
+      "sectors": [
+        {
+          "name": "S038",
+          "label": "plot 1-1"
+        }
+      ],
+      "created_at": "2026-01-01T00:00:00Z",
+      "updated_at": "2026-01-01T00:00:00Z"
+    },
+    {
+      "id": 2,
+      "reference": "C1002",
+      "name": "Jordan Kowalski",
+      "phone_number": "900222222",
+      "active": false,
+      "sectors": [
+        {
+          "name": "S092",
+          "label": "plot 2-1"
+        },
+        {
+          "name": "S090",
+          "label": "plot 2-2"
+        }
+      ],
+      "created_at": "2026-01-01T00:00:00Z",
+      "updated_at": "2026-01-01T00:00:00Z"
+    },
+    {
+      "id": 3,
+      "reference": "C1003",
+      "name": "Casey Okafor",
+      "phone_number": "900333333",
+      "active": true,
+      "sectors": [
+        {
+          "name": "S080",
+          "label": "plot 3-1"
+        },
+        {
+          "name": "S194",
+          "label": "plot 3-2"
+        },
+        {
+          "name": "S076",
+          "label": "plot 3-3"
+        }
+      ],
+      "created_at": "2026-01-01T00:00:00Z",
+      "updated_at": "2026-01-01T00:00:00Z"
+    },
+    {
+      "id": 4,
+      "reference": "C1004",
+      "name": "Riley Larsen",
+      "phone_number": "900444444",
+      "active": false,
+      "sectors": [],
+      "created_at": "2026-01-01T00:00:00Z",
+      "updated_at": "2026-01-01T00:00:00Z"
+    },
+    {
+      "id": 5,
+      "reference": "C1005",
+      "name": "Morgan Haddad",
+      "phone_number": "900555555",
+      "active": true,
+      "sectors": [
+        {
+          "name": "S186",
+          "label": "plot 5-1"
+        }
+      ],
+      "created_at": "2026-01-01T00:00:00Z",
+      "updated_at": "2026-01-01T00:00:00Z"
+    },
+    {
+      "id": 6,
+      "reference": "C1006",
+      "name": "Taylor Silva",
+      "phone_number": "900666666",
+      "active": false,
+      "sectors": [
+        {
+          "name": "S102",
+          "label": "plot 6-1"
+        },
+        {
+          "name": "S152",
+          "label": "plot 6-2"
+        }
+      ],
+      "created_at": "2026-01-01T00:00:00Z",
+      "updated_at": "2026-01-01T00:00:00Z"
+    },
+    {
+      "id": 7,
+      "reference": "C1007",
+      "name": "Jamie Meyer",
+      "phone_number": "900777777",
+      "active": true,
+      "sectors": [
+        {
+          "name": "S082",
+          "label": "plot 7-1"
+        },
+        {
+          "name": "S022",
+          "label": "plot 7-2"
+        },
+        {
+          "name": "S234",
+          "label": "plot 7-3"
+        }
+      ],
+      "created_at": "2026-01-01T00:00:00Z",
+      "updated_at": "2026-01-01T00:00:00Z"
+    },
+    {
+      "id": 8,
+      "reference": "C1008",
+      "name": "Drew Costa",
+      "phone_number": "900888888",
+      "active": false,
+      "sectors": [],
+      "created_at": "2026-01-01T00:00:00Z",
+      "updated_at": "2026-01-01T00:00:00Z"
+    },
+    {
+      "id": 9,
+      "reference": "C1009",
+      "name": "Quinn Andersson",
+      "phone_number": "900999999",
+      "active": true,
+      "sectors": [
+        {
+          "name": "S122",
+          "label": "plot 9-1"
+        }
+      ],
+      "created_at": "2026-01-01T00:00:00Z",
+      "updated_at": "2026-01-01T00:00:00Z"
+    },
+    {
+      "id": 10,
+      "reference": "C1010",
+      "name": "Avery Bianchi",
+      "phone_number": "901111110",
+      "active": false,
+      "sectors": [
+        {
+          "name": "S206",
+          "label": "plot 10-1"
+        },
+        {
+          "name": "S054",
+          "label": "plot 10-2"
+        }
+      ],
+      "created_at": "2026-01-01T00:00:00Z",
+      "updated_at": "2026-01-01T00:00:00Z"
+    },
+    {
+      "id": 11,
+      "reference": "C1011",
+      "name": "Parker Novak",
+      "phone_number": "901222221",
+      "active": true,
+      "sectors": [
+        {
+          "name": "S230",
+          "label": "plot 11-1"
+        },
+        {
+          "name": "S026",
+          "label": "plot 11-2"
+        },
+        {
+          "name": "S040",
+          "label": "plot 11-3"
+        }
+      ],
+      "created_at": "2026-01-01T00:00:00Z",
+      "updated_at": "2026-01-01T00:00:00Z"
+    },
+    {
+      "id": 12,
+      "reference": "C1012",
+      "name": "Reese Vidal",
+      "phone_number": "901333332",
+      "active": false,
+      "sectors": [],
+      "created_at": "2026-01-01T00:00:00Z",
+      "updated_at": "2026-01-01T00:00:00Z"
+    },
+    {
+      "id": 13,
+      "reference": "C1013",
+      "name": "Rowan Roy",
+      "phone_number": "901444443",
+      "active": true,
+      "sectors": [
+        {
+          "name": "S020",
+          "label": "plot 13-1"
+        }
+      ],
+      "created_at": "2026-01-01T00:00:00Z",
+      "updated_at": "2026-01-01T00:00:00Z"
+    },
+    {
+      "id": 14,
+      "reference": "C1014",
+      "name": "Sage Rivera",
+      "phone_number": "901555554",
+      "active": false,
+      "sectors": [
+        {
+          "name": "S086",
+          "label": "plot 14-1"
+        },
+        {
+          "name": "S076",
+          "label": "plot 14-2"
+        }
+      ],
+      "created_at": "2026-01-01T00:00:00Z",
+      "updated_at": "2026-01-01T00:00:00Z"
+    },
+    {
+      "id": 15,
+      "reference": "C1015",
+      "name": "Alex Nguyen",
+      "phone_number": "901666665",
+      "active": true,
+      "sectors": [
+        {
+          "name": "S002",
+          "label": "plot 15-1"
+        },
+        {
+          "name": "S096",
+          "label": "plot 15-2"
+        },
+        {
+          "name": "S172",
+          "label": "plot 15-3"
+        }
+      ],
+      "created_at": "2026-01-01T00:00:00Z",
+      "updated_at": "2026-01-01T00:00:00Z"
+    },
+    {
+      "id": 16,
+      "reference": "C1016",
+      "name": "Sam Kowalski",
+      "phone_number": "901777776",
+      "active": false,
+      "sectors": [],
+      "created_at": "2026-01-01T00:00:00Z",
+      "updated_at": "2026-01-01T00:00:00Z"
+    },
+    {
+      "id": 17,
+      "reference": "C1017",
+      "name": "Jordan Okafor",
+      "phone_number": "901888887",
+      "active": true,
+      "sectors": [
+        {
+          "name": "S144",
+          "label": "plot 17-1"
+        }
+      ],
+      "created_at": "2026-01-01T00:00:00Z",
+      "updated_at": "2026-01-01T00:00:00Z"
+    },
+    {
+      "id": 18,
+      "reference": "C1018",
+      "name": "Casey Larsen",
+      "phone_number": "901999998",
+      "active": false,
+      "sectors": [
+        {
+          "name": "S066",
+          "label": "plot 18-1"
+        },
+        {
+          "name": "S036",
+          "label": "plot 18-2"
+        }
+      ],
+      "created_at": "2026-01-01T00:00:00Z",
+      "updated_at": "2026-01-01T00:00:00Z"
+    },
+    {
+      "id": 19,
+      "reference": "C1019",
+      "name": "Riley Haddad",
+      "phone_number": "902111109",
+      "active": true,
+      "sectors": [
+        {
+          "name": "S070",
+          "label": "plot 19-1"
+        },
+        {
+          "name": "S216",
+          "label": "plot 19-2"
+        },
+        {
+          "name": "S100",
+          "label": "plot 19-3"
+        }
+      ],
+      "created_at": "2026-01-01T00:00:00Z",
+      "updated_at": "2026-01-01T00:00:00Z"
+    },
+    {
+      "id": 20,
+      "reference": "C1020",
+      "name": "Morgan Silva",
+      "phone_number": "902222220",
+      "active": false,
+      "sectors": [],
+      "created_at": "2026-01-01T00:00:00Z",
+      "updated_at": "2026-01-01T00:00:00Z"
+    }
+  ],
+  "count": 20,
+  "page_size": 15
+}
