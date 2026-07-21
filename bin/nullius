@@ -51,5 +51,5 @@ fi
 [[ "$CHECK" == "1" ]] && { [[ "$ok" == "1" ]] && echo "nullius: ready." || echo "nullius: fix the ✗ items above."; exit $((1-ok)); }
 [[ "$ok" == "1" ]] || { echo "nullius: wiring incomplete (see ✗ above) — launching anyway." >&2; }
 
-echo "nullius: launching co-pilot in $DIR — invoke /nullius on any nontrivial task; delegate large builds with nullius-build."
+echo "nullius: launching co-pilot in $DIR — invoke /nullius:nullius on any nontrivial task; delegate large builds with nullius-build."
 exec claude
