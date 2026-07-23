@@ -1,5 +1,10 @@
 # go-nullius v0 — design contract
 
+> **SUPERSEDED for the local path (2026-07-23).** This is the **v0 agentic driver**
+> contract (shipped, live-verified). The active design for weak local models is the
+> pure-Go deterministic orchestrator in `DESIGN-deterministic.md`; transport/ledger/
+> drain/close are shared, the model-driven loop is not. v0 lives on as `--driver=agentic`.
+
 A ground-up Go agent encoding the nullius methodology, talking to Claude
 directly over the Messages API on a Teams subscription (OAuth + extra
 usage credits — the same path pi uses, verified working). Scoped

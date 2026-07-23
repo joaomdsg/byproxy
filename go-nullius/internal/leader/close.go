@@ -3,16 +3,76 @@ package leader
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"os"
+	"os/exec"
 	"path/filepath"
 	"strings"
 	"sync/atomic"
+	"time"
 
 	"github.com/anthropics/anthropic-sdk-go"
 
 	"go-nullius/internal/ledger"
 )
+
+// closeCmdTimeout bounds each mechanical close command; a hung build/test
+// must not hang the guaranteed close-out.
+const closeCmdTimeout = 3 * time.Minute
+
+// closeOutCap caps a single command's recorded output so a verbose test
+// run cannot bloat the record past readability.
+const closeOutCap = 8 << 10
+
+// MechanicalClose runs the close-out verification as PURE GO — no model, no
+// scout, no turn budget — so the record ALWAYS exists even when the driver
+// hit its turn cap, errored, or the model never called the close tool. It
+// runs the project's detected suite plus the language-agnostic git/0-byte
+// records, capturing verbatim output and REAL exit codes. Call it off a
+// fresh context (context.Background()) so it survives a cancelled run.
+func MechanicalClose(ctx context.Context, dir string) string {
+	cmds := append(DetectCloseCommands(dir),
+		"git diff --stat",
+		"git status --porcelain",
+		"find . -type f -size 0 -not -path './.git/*'",
+	)
+	var b strings.Builder
+	b.WriteString("MECHANICAL CLOSE-OUT RECORD (pure Go; verbatim exit codes)\n")
+	fmt.Fprintf(&b, "dir: %s\n\n", dir)
+	for _, c := range cmds {
+		out, code := runCloseCmd(ctx, dir, c)
+		fmt.Fprintf(&b, "$ %s\n(exit %d)\n%s\n\n", c, code, strings.TrimRight(out, "\n"))
+	}
+	return strings.TrimRight(b.String(), "\n")
+}
+
+// runCloseCmd runs one close command via sh -c in dir, capturing combined
+// output (capped) and the real exit code (-1 for a failure to start; the
+// process code on a timeout). Never panics; a missing binary or non-repo
+// dir is recorded, not fatal.
+func runCloseCmd(ctx context.Context, dir, cmdline string) (string, int) {
+	cctx, cancel := context.WithTimeout(ctx, closeCmdTimeout)
+	defer cancel()
+	cmd := exec.CommandContext(cctx, "sh", "-c", cmdline)
+	cmd.Dir = dir
+	out, err := cmd.CombinedOutput()
+	if len(out) > closeOutCap {
+		out = append(out[:closeOutCap], []byte("\n[output truncated]")...)
+	}
+	code := 0
+	if err != nil {
+		code = -1
+		var ee *exec.ExitError
+		if errors.As(err, &ee) {
+			code = ee.ExitCode()
+		}
+		if cctx.Err() == context.DeadlineExceeded {
+			out = append(out, []byte("\n[timed out]")...)
+		}
+	}
+	return string(out), code
+}
 
 // DefaultCloseCommands is the Go-project close suite; override per
 // project via the tool input.

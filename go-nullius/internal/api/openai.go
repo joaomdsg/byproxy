@@ -38,6 +38,42 @@ const (
 	retryCap     = 5 * time.Minute
 )
 
+// Transport-level weak-model guards (language-agnostic):
+const (
+	// maxPromptTokens is the INPUT wall: a request whose estimated prompt
+	// exceeds this is refused rather than sent, turning the unbounded
+	// prompt-assembly blowup (measured: a 2.86M-token send) into a clean,
+	// logged abort. Sized to leave output room under a 256k-KV server.
+	maxPromptTokens = 200_000
+	// defaultMaxTokens caps OUTPUT when a request carries none, so a
+	// degenerate generation cannot run unbounded on a server that ignores
+	// an absent limit.
+	defaultMaxTokens = 8192
+)
+
+// estimateTokens is a cheap transport-local heuristic (~4 bytes/token, +15%
+// headroom) — not exact, but enough to catch a runaway prompt before it is
+// sent. No tokenizer dependency.
+func estimateTokens(req openai.ChatCompletionRequest) int {
+	n := 0
+	for _, m := range req.Messages {
+		n += len(m.Content)
+		for _, tc := range m.ToolCalls {
+			n += len(tc.Function.Arguments) + len(tc.Function.Name)
+		}
+	}
+	for _, t := range req.Tools {
+		if t.Function == nil {
+			continue
+		}
+		n += len(t.Function.Name) + len(t.Function.Description)
+		if b, err := json.Marshal(t.Function.Parameters); err == nil {
+			n += len(b)
+		}
+	}
+	return n / 4 * 115 / 100
+}
+
 // New builds a client for an OpenAI-compatible endpoint. apiKey may be a
 // placeholder ("not-needed") for auth-less local servers; model is the
 // server's model id used when a request carries no explicit model.
@@ -53,6 +89,9 @@ func New(baseURL, apiKey, model string) *Client {
 // by ctx, not a fixed timeout — local models can be slow.
 func (c *Client) Stream(ctx context.Context, params anthropic.MessageNewParams, onEvent func(anthropic.MessageStreamEventUnion)) (*anthropic.Message, error) {
 	req := c.toRequest(params)
+	if est := estimateTokens(req); est > maxPromptTokens {
+		return nil, fmt.Errorf("prompt-size wall: estimated %d tokens exceeds %d — refusing to send (runaway context; compact/evict before retrying)", est, maxPromptTokens)
+	}
 	base := c.RetryBase
 	if base <= 0 {
 		base = retryBaseDef
@@ -174,9 +213,13 @@ func (c *Client) toRequest(p anthropic.MessageNewParams) openai.ChatCompletionRe
 	if model == "" {
 		model = c.model
 	}
+	maxTok := int(p.MaxTokens)
+	if maxTok <= 0 {
+		maxTok = defaultMaxTokens
+	}
 	return openai.ChatCompletionRequest{
 		Model:     model,
-		MaxTokens: int(p.MaxTokens),
+		MaxTokens: maxTok,
 		Messages:  msgs,
 		Tools:     tools,
 	}

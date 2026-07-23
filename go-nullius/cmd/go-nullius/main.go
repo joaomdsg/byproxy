@@ -327,16 +327,29 @@ func run(prompt, modelF, leaderF, scoutF string, scoutMode, craftMode bool, dirF
 	defer stop()
 
 	if prompt != "" {
+		// GUARANTEED CLOSE: the mechanical close-out record must exist even
+		// if the driver hit its turn cap, errored, or panicked before the
+		// model called close. It runs pure Go off a fresh context (so a
+		// cancelled run still closes) whenever no clean close-out ran. A run
+		// never ships silence — the broken-build-undetected failure mode.
+		if led != nil {
+			defer func() {
+				if closer != nil && closer.HasClosed() {
+					return
+				}
+				rec := leader.MechanicalClose(context.Background(), dir)
+				fmt.Fprintf(os.Stderr, "\n=== MECHANICAL CLOSE (forced: no clean close-out ran) ===\n%s\n", rec)
+			}()
+		}
 		mandate := prompt
 		if bootstrap != nil {
 			mandate = bootstrap(ctx, prompt) // one fast terrain scout, then hand off to the leader
 		}
 		out, err := loop.Run(ctx, mandate)
-		if err != nil {
-			return err
+		if out != "" {
+			fmt.Println(out)
 		}
-		fmt.Println(out)
-		return nil
+		return err
 	}
 
 	// Interactive REPL.

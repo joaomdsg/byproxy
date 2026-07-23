@@ -1,5 +1,12 @@
 # go-nullius v0 — build state (checkpoint 1)
 
+> **DIRECTION CHANGED (2026-07-23).** This documents the shipped **v0 agentic driver**
+> (model-driven loop). It is an accurate historical checkpoint, NOT the current plan.
+> The project has pivoted to a **pure-Go deterministic orchestrator** (the agentic
+> loop's prompt-gates got routed around by weak local models). Current design:
+> `DESIGN-deterministic.md`. The v0 agentic driver is retained as the frontier/`--driver=agentic`
+> path; the deterministic driver is the local-model path being built.
+
 Verified facts captured on disk so the build survives context compaction. Judged
 against `DESIGN.md`. Auth store decision: **Claude Code's** (`~/.claude/.credentials.json`),
 fall through to `ANTHROPIC_API_KEY`. Live canary: approved.

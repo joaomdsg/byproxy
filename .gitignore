@@ -4,3 +4,4 @@ pi-nullius/node_modules/
 .claude/scheduled_tasks.lock
 .claude/*.lock
 .nullius/
+go-nullius/go-nullius
