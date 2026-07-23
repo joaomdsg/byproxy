@@ -190,12 +190,32 @@ func (m *Machine) Run(ctx context.Context, md Mandate) (*Result, error) {
 		}
 	}
 
+	// SEED — load the compounding lens library and prepend confirmed-derived lenses from
+	// past runs (seed-first, deduped by ID). Seeds are re-witness-gated below like any
+	// derived lens, so a stale seed drops harmlessly. No dir → no library, model-only.
+	var store *LensStore
+	var seededIDs map[string]bool
+	specs := rc.specs()
+	if md.Dir != "" {
+		if s, err := LoadLensStore(md.Dir); err != nil {
+			log(PhaseRecon, "lens library unreadable (%v): model-derived only", err)
+		} else {
+			store = s
+			var merged []enumerate.LensSpec
+			merged, seededIDs = mergeSeeds(store.Seeds(ter.Lang), specs)
+			if n := len(merged) - len(specs); n > 0 {
+				log(PhaseRecon, "seeded %d confirmed lens(es) from the library", n)
+			}
+			specs = merged
+		}
+	}
+
 	// ENUMERATE — baseline always runs; derived lenses are witness-gated then added.
 	baseline, err := m.Reg.BuildBaseline(ter.Lang, ter.lang)
 	if err != nil {
 		return nil, fmt.Errorf("machine: baseline compile: %w", err)
 	}
-	accepted, statuses := m.Reg.AcceptDerived(rc.specs(), ter.lang, ter.Lang)
+	accepted, statuses := m.Reg.AcceptDerived(specs, ter.lang, ter.Lang)
 	res.LensStatuses = statuses
 	for _, s := range statuses {
 		if s.Accepted {
@@ -231,6 +251,15 @@ func (m *Machine) Run(ctx context.Context, md Mandate) (*Result, error) {
 	confirmed := res.Confirmed()
 	log(PhaseCorroborate, "%d/%d candidate(s) CONFIRMED after Judge + Corroborate", len(confirmed), len(res.Judged))
 
+	// PROMOTE — a model-derived lens that produced a CONFIRMED defect has proven it bites
+	// real code, so persist it to the library; future runs seed it instead of re-deriving.
+	// Only model-derived, not-already-seeded specs promote (baseline lenses aren't in the
+	// spec map; seeded ones are already stored). Best-effort: a save failure is logged, never
+	// fatal — the run's rulings stand regardless of whether the library grew.
+	if store != nil {
+		m.promoteConfirmed(store, md.Dir, ter.Lang, specs, seededIDs, confirmed, log)
+	}
+
 	// PLAN — one fix plan per DISTINCT defect target (smart tier, NO writes). Same-lens
 	// defects in the same function collapse to one plan: a single craftsman fixes the
 	// function, and separate overlapping plans would have the second find the work done
@@ -265,6 +294,38 @@ func (m *Machine) Run(ctx context.Context, md Mandate) (*Result, error) {
 	log(PhaseClose, "mode=%s: %d confirmed, %d planned, %d drained-DONE, %d judged",
 		mode, len(confirmed), len(res.Plans), countDone(res.Drained), len(res.Judged))
 	return res, nil
+}
+
+// promoteConfirmed persists every confirmed defect's model-derived lens to the library.
+// specs is the merged (seed+model) spec set; a confirmed candidate's Lens ID resolves to
+// at most one spec there (baseline IDs are absent). seededIDs are already stored, so they
+// are skipped. The store is saved once iff anything new was promoted.
+func (m *Machine) promoteConfirmed(store *LensStore, dir, lang string, specs []enumerate.LensSpec, seededIDs map[string]bool, confirmed []Confirmation, log logf) {
+	byID := make(map[string]enumerate.LensSpec, len(specs))
+	for _, s := range specs {
+		byID[s.ID] = s
+	}
+	promoted := 0
+	for _, c := range confirmed {
+		id := c.Candidate.Lens
+		if seededIDs[id] {
+			continue // already in the library
+		}
+		s, ok := byID[id]
+		if !ok {
+			continue // a baseline lens — not model-derived, not promotable
+		}
+		if store.Promote(lang, s) {
+			promoted++
+			log(PhaseClose, "promoted lens %q to the library (confirmed a real defect)", id)
+		}
+	}
+	if promoted == 0 {
+		return
+	}
+	if err := store.Save(dir); err != nil {
+		log(PhaseClose, "lens library save failed (%v): %d promotion(s) not persisted", err, promoted)
+	}
 }
 
 // dedupeConfirmed collapses confirmed defects that share (file, function, lens) — the same

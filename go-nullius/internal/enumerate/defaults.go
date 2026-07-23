@@ -52,8 +52,11 @@ var goTemplates = []*Template{
 }
 
 // DefaultRegistry returns a registry seeded with the Go template library and the Go
-// baseline coverage floor. The baseline is deliberately small in v1 — one order-backend
-// walk lens — and grows as confirmed derived lenses are promoted into it (step 7).
+// baseline coverage floor. The baseline is deliberately small — one walk lens. Confirmed
+// derived lenses grow the coverage floor NOT by mutating this baseline but via the on-disk
+// lens library (machine.LensStore): they are re-seeded each run as always-on derived
+// lenses, kept under witness-gating + the selectivity ceiling because they are
+// model-authored (baseline lenses are pre-verified and exempt from both).
 func DefaultRegistry() *Registry {
 	r := NewRegistry()
 	for _, t := range goTemplates {
