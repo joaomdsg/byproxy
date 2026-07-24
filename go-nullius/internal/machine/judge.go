@@ -22,11 +22,15 @@ const (
 	refuteMaxTokens = 1200
 )
 
-// JudgeOut is the fast tier's forced-choice ruling on one candidate.
+// JudgeOut is the fast tier's forced-choice ruling on one candidate. OffLensNote is an
+// OPTIONAL lead: a different problem the judge noticed that is NOT the lens's concern. It is
+// recorded as a lead, never confirmed/planned/promoted — an off-lens observation from a weak
+// fast model that bypassed enumeration + witness + corroboration has ~zero precision.
 type JudgeOut struct {
 	Answer       string `json:"answer"` // DEFECT | CORRECT | CANT_TELL
 	DecisiveLine int    `json:"decisive_line"`
 	Because      string `json:"because"`
+	OffLensNote  string `json:"off_lens_note,omitempty"`
 }
 
 // RefuteOut is the corroboration refuter's attempt to overturn a DEFECT.
@@ -70,16 +74,31 @@ func (m *Machine) judgeAndCorroborate(ctx context.Context, task string, c enumer
 	}
 	conf.Judge = j
 	log(PhaseJudge, "%s:%d [%s] → %s (line %d): %s", c.File, c.Line, c.Lens, strings.ToUpper(j.Answer), j.DecisiveLine, j.Because)
+	if note := strings.TrimSpace(j.OffLensNote); note != "" {
+		conf.Note = "off-lens lead (not confirmed): " + note
+		log(PhaseJudge, "%s:%d off-lens LEAD: %s", c.File, c.Line, note)
+	}
 	if strings.ToUpper(strings.TrimSpace(j.Answer)) != "DEFECT" {
 		return conf
 	}
 
-	// Corroborate filter 1 — the decisive line must be inside the evidence and non-blank.
-	// A model that cites a line it was not shown has not proven anything.
+	// Corroborate filter 1a — the decisive line must be inside the shown evidence window and
+	// non-blank. A model that cites a line it was not shown has proven nothing.
 	if !validLine(lines, start, end, j.DecisiveLine) {
 		conf.Judge.Answer = "CANT_TELL"
 		conf.Note = fmt.Sprintf("decisive line %d outside evidence [%d,%d]", j.DecisiveLine, start, end)
 		log(PhaseCorroborate, "%s:%d decisive line %d out of evidence → CANT_TELL", c.File, c.Line, j.DecisiveLine)
+		return conf
+	}
+	// Corroborate filter 1b (lens coherence) — the decisive line must be one THIS lens
+	// implicates (its Evidence set), not just any line in the function. This gate stops an
+	// off-lens DEFECT (the crypto.go FP: a json.Unmarshal error ruled under a cas-method-call
+	// lens) from being confirmed — and, crucially, from POISONING the promotion library, which
+	// reinforces the lens of every confirmed candidate.
+	if !c.OnLens(j.DecisiveLine) {
+		conf.Judge.Answer = "CANT_TELL"
+		conf.Note = fmt.Sprintf("off-lens: decisive line %d not implicated by lens %q (evidence %v)", j.DecisiveLine, c.Lens, c.Evidence)
+		log(PhaseCorroborate, "%s:%d OFF-LENS (decisive %d ∉ evidence %v) → CANT_TELL", c.File, c.Line, j.DecisiveLine, c.Evidence)
 		return conf
 	}
 	conf.LineValid = true
@@ -258,15 +277,19 @@ CODE B (line: text):
 }
 
 func judgePrompt(task string, c enumerate.Candidate, window string, start, end int) string {
-	return `You are the JUDGE phase. A mechanical lens flagged the site below. Decide, for THIS task, whether
-the site is a real "DEFECT", is "CORRECT" (safe as written), or "CANT_TELL". Pick the single decisive
-line number (in [` + itoa(start) + `,` + itoa(end) + `]) that proves your call. Reply with ONLY a JSON object:
-{"answer": "DEFECT"|"CORRECT"|"CANT_TELL", "decisive_line": <int>, "because": "<=160 chars"}
+	return `You are the JUDGE phase. A mechanical lens flagged the site below. Rule ONLY on THIS lens's
+specific concern: DEFECT means the lens's concern ("` + c.Mechanism + `") is a real bug AT the flagged
+site (line ` + itoa(c.Line) + `); CORRECT means it is safe as written; CANT_TELL if you cannot decide.
+A DIFFERENT problem you happen to see nearby is NOT a DEFECT for this lens — put it in "off_lens_note"
+instead (it will be recorded as a lead, not a finding). Your "decisive_line" MUST be the flagged site or
+a line the lens implicates, in [` + itoa(start) + `,` + itoa(end) + `] — not an unrelated line. Reply with
+ONLY a JSON object:
+{"answer": "DEFECT"|"CORRECT"|"CANT_TELL", "decisive_line": <int>, "because": "<=160 chars", "off_lens_note": "<=160 chars or omit"}
 
 TASK:
 ` + task + `
 
-LENS: ` + c.Lens + ` (mechanism: ` + c.Mechanism + `)
+LENS: ` + c.Lens + ` — its concern: ` + c.Mechanism + `
 SITE: ` + c.File + `:` + itoa(c.Line) + ` in function ` + c.Fn + `
 
 CODE (line: text):

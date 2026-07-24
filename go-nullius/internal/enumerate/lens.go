@@ -49,8 +49,15 @@ func (l *QueryLens) Enumerate(f *ParsedFile) []Candidate {
 			continue
 		}
 		facts := make(map[string]string, len(m.Captures))
+		ev := map[int]bool{}
 		for _, c := range m.Captures {
 			facts[c.Name] = nodeText(f.Src, c.Node)
+			for _, l := range spanLines(c.Node) {
+				ev[l] = true
+			}
+		}
+		for _, l := range spanLines(anchor) {
+			ev[l] = true
 		}
 		out = append(out, Candidate{
 			Lens:      l.id,
@@ -60,6 +67,7 @@ func (l *QueryLens) Enumerate(f *ParsedFile) []Candidate {
 			Fn:        enclosingFn(f, anchor),
 			Snippet:   nodeText(f.Src, anchor),
 			Facts:     facts,
+			Evidence:  sortedKeys(ev),
 		})
 	}
 	return out

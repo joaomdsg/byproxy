@@ -65,5 +65,11 @@ func DefaultRegistry() *Registry {
 	r.RegisterBaseline("go", "stmt-after-return", func(*gts.Language) (Lens, error) {
 		return NewWalkLens("stmt-after-return", "unreachable", StmtAfterReturn), nil
 	})
+	// bool-tautology: constant-by-construction comparisons (len(x)>=0 always-true guards,
+	// identical-operand comparisons). Task-agnostic class coverage; catches always-true
+	// subscription predicates like the vialite over-wake defect.
+	r.RegisterBaseline("go", "bool-tautology", func(*gts.Language) (Lens, error) {
+		return NewWalkLens("bool-tautology", "tautology", BoolTautology), nil
+	})
 	return r
 }

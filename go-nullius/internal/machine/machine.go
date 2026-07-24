@@ -224,12 +224,16 @@ func (m *Machine) Run(ctx context.Context, md Mandate) (*Result, error) {
 			log(PhaseRecon, "lens %q DERIVE_FAILED: %s", s.ID, s.Reason)
 		}
 	}
-	er, err := enumerate.Run(ter.Files, baseline, accepted)
+	er, err := enumerate.Run(ter.EnumFiles, baseline, accepted)
 	if err != nil {
 		return nil, fmt.Errorf("machine: enumerate: %w", err)
 	}
 	res.Candidates = er.Candidates
 	res.Notes = er.Notes
+	for _, ex := range ter.Excluded {
+		res.Notes = append(res.Notes, "excluded from hunt: "+ex)
+		log(PhaseEnumerate, "excluded from hunt: %s", ex)
+	}
 	log(PhaseEnumerate, "%d candidate(s) from %d baseline + %d derived lens(es); %d note(s)", len(er.Candidates), len(baseline), len(accepted), len(er.Notes))
 	for _, n := range er.Notes {
 		log(PhaseEnumerate, "note: %s", n)
@@ -288,7 +292,7 @@ func (m *Machine) Run(ctx context.Context, md Mandate) (*Result, error) {
 		log(PhaseDrain, "%d/%d plan(s) DONE", countDone(res.Drained), len(res.Drained))
 		// AUDIT — re-hunt the frozen lens set over the modified files; re-judge and drain any
 		// FRESH target a fix introduced or exposed, bounded by a round cap and a seen-set.
-		m.auditReentry(ctx, md, md.Task, baseline, accepted, res, log)
+		m.auditReentry(ctx, md, ter.EnumFiles, md.Task, baseline, accepted, res, log)
 	} else {
 		log(PhaseDrain, "SKELETON: no craftsman/dir — %d plan(s) reported, not written", len(res.Plans))
 		log(PhaseAudit, "skipped (no drain)")
@@ -379,13 +383,13 @@ func targetKey(c enumerate.Candidate) string {
 // A residual at an ALREADY-ruled target (the fix did not remove the flagged shape) is surfaced
 // as an unresolved residual, never re-drained — drain already tried and reverted, so re-attempt
 // cannot help; it is a RISK for the close to report.
-func (m *Machine) auditReentry(ctx context.Context, md Mandate, task string, baseline, accepted []enumerate.Lens, res *Result, log logf) {
+func (m *Machine) auditReentry(ctx context.Context, md Mandate, files []string, task string, baseline, accepted []enumerate.Lens, res *Result, log logf) {
 	seen := map[string]bool{}
 	for _, j := range res.Judged {
 		seen[targetKey(j.Candidate)] = true
 	}
 	for round := 1; round <= maxAuditRounds; round++ {
-		er, err := enumerate.Run(md.Files, baseline, accepted)
+		er, err := enumerate.Run(files, baseline, accepted)
 		if err != nil {
 			log(PhaseAudit, "round %d re-hunt failed: %v", round, err)
 			return

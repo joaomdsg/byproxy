@@ -42,6 +42,15 @@ func helper() {}
 
 var siteLineRE = regexp.MustCompile(`SITE: \S+:(\d+) `)
 
+// siteLine extracts the flagged site's line from a JUDGE/REFUTE prompt (dflt if absent) — so
+// a fake can echo each candidate's own line, as a real judge does, satisfying the coherence gate.
+func siteLine(p, dflt string) string {
+	if m := siteLineRE.FindStringSubmatch(p); m != nil {
+		return m[1]
+	}
+	return dflt
+}
+
 // reentryFake judges every flagged site a DEFECT, echoing the site's own line as the decisive
 // line so the validity gate always passes regardless of where the site sits. Recon derives the
 // calls-helper lens (so the fresh g.helper() call is caught); baseline stmt-after-return catches

@@ -86,7 +86,13 @@ func TestJudgeConfirmsDefectClearsCorrect(t *testing.T) {
 		switch {
 		case strings.Contains(p, "JUDGE phase"):
 			if strings.Contains(p, "stmt-after-return") {
-				return `{"answer":"DEFECT","decisive_line":6,"because":"unreachable after return"}`, true
+				// echo the site's own line (as a real judge does) — the coherence gate now
+				// requires the decisive line to be the flagged statement, not a fixed sibling.
+				line := "6"
+				if m := siteLineRE.FindStringSubmatch(p); m != nil {
+					line = m[1]
+				}
+				return `{"answer":"DEFECT","decisive_line":` + line + `,"because":"unreachable after return"}`, true
 			}
 			return `{"answer":"CORRECT","decisive_line":4,"because":"reachable call"}`, true
 		case strings.Contains(p, "REFUTE phase"):
@@ -136,10 +142,11 @@ func TestUnsupportedRefutationDefectStands(t *testing.T) {
 	// The refuter says stands=false but cites no valid distinct line (null, and the
 	// flagged line itself). A bare refutation must NOT clear a judge-affirmed defect.
 	for _, tc := range []struct {
-		name, refute string
+		name     string
+		selfLine bool // self-line: refuting_line == the flagged line itself (unsupported)
 	}{
-		{"null-line", `{"stands":false,"refuting_line":null}`},
-		{"self-line", `{"stands":false,"refuting_line":6}`}, // == decisive line
+		{"null-line", false},
+		{"self-line", true},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
 			f := writeGo(t, "a.go", brownfieldSrc)
@@ -147,11 +154,15 @@ func TestUnsupportedRefutationDefectStands(t *testing.T) {
 				switch {
 				case strings.Contains(p, "JUDGE phase"):
 					if strings.Contains(p, "stmt-after-return") {
-						return `{"answer":"DEFECT","decisive_line":6,"because":"unreachable"}`, true
+						return `{"answer":"DEFECT","decisive_line":` + siteLine(p, "6") + `,"because":"unreachable"}`, true
 					}
 					return `{"answer":"CORRECT","decisive_line":4,"because":"reachable"}`, true
 				case strings.Contains(p, "REFUTE phase"):
-					return tc.refute, true
+					if tc.selfLine {
+						// cite the flagged line itself → not a valid distinct safety line
+						return `{"stands":false,"refuting_line":` + siteLine(p, "6") + `}`, true
+					}
+					return `{"stands":false,"refuting_line":null}`, true
 				}
 				return "", false
 			})

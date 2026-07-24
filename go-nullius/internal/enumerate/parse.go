@@ -3,10 +3,21 @@ package enumerate
 import (
 	"fmt"
 	"os"
+	"sort"
 
 	gts "github.com/odvcencio/gotreesitter"
 	"github.com/odvcencio/gotreesitter/grammars"
 )
+
+// sortedKeys returns the keys of a line-set as a sorted slice — a stable Evidence list.
+func sortedKeys(m map[int]bool) []int {
+	out := make([]int, 0, len(m))
+	for k := range m {
+		out = append(out, k)
+	}
+	sort.Ints(out)
+	return out
+}
 
 // ParsedFile is a source file parsed into a tree-sitter CST, carrying everything a
 // lens needs: the raw bytes (node text is sliced from here), the language (node kinds
@@ -87,4 +98,21 @@ func nodeLine(n *gts.Node) int {
 		return 0
 	}
 	return int(n.StartPoint().Row) + 1
+}
+
+// spanLines returns every 1-indexed line the node covers, inclusive — the implicated region
+// for a candidate's evidence set (the decisive-line coherence gate checks membership here).
+func spanLines(n *gts.Node) []int {
+	if n == nil {
+		return nil
+	}
+	s, e := int(n.StartPoint().Row)+1, int(n.EndPoint().Row)+1
+	if e < s {
+		e = s
+	}
+	out := make([]int, 0, e-s+1)
+	for l := s; l <= e; l++ {
+		out = append(out, l)
+	}
+	return out
 }

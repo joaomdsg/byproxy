@@ -15,6 +15,25 @@ type Candidate struct {
 	Fn        string            // enclosing function name, best-effort ("" if unknown)
 	Snippet   string            // anchor node text, verbatim from disk
 	Facts     map[string]string // capture name -> captured text (mechanical facts for the judge)
+	Evidence  []int             // 1-indexed lines this lens implicates — the decisive-line
+	// coherence gate (Corroborate filter 1) requires the judge's decisive_line to fall in
+	// this set, so a DEFECT ruling must be ABOUT the flagged site, not an unrelated line in
+	// the same function (guards the promotion library against off-lens confirms).
+}
+
+// OnLens reports whether line is one this candidate implicates — the decisive-line coherence
+// check. Falls back to the anchor line when Evidence is unset, so a candidate that predates
+// evidence population is still gated to its own site rather than the whole function.
+func (c Candidate) OnLens(line int) bool {
+	if len(c.Evidence) == 0 {
+		return line == c.Line
+	}
+	for _, l := range c.Evidence {
+		if l == line {
+			return true
+		}
+	}
+	return false
 }
 
 // ToFinding projects a Candidate into the ledger's Finding shape. Verdict is left
